@@ -30,10 +30,10 @@ jobs:
         echo "My service name is $CS_SERVICE" 
         echo "My service API Key is $CS_API_KEY"
         pip install flake8 pytest --index-url https://$CS_SERVICE:$CS_API_KEY@dl.cloudsmith.io/basic/cloudsmith-test/vul-workflow/python/simple/
-        if [ -f requirements.txt ]; then pip install -r requirements.txt --index-url https://$CS_SERVICE:$CS_API_KEY@dl.cloudsmith.io/basic/demo/sb-demo/python/simple/; fi
+        if [ -f requirements.txt ]; then pip install -r requirements.txt --index-url https://$CS_SERVICE:$CS_API_KEY@dl.cloudsmith.io/basic/cloudsmith-test/vul-workflow/python/simple/; fi
       env: 
-        CS_SERVICE: ${{ vars.CS_SERVICE }}
-        CS_API_KEY: ${{ vars.CS_API_KEY }}
+        CS_SERVICE: ${{ secrets.CS_USER }}
+        CS_API_KEY: ${{ secrets.CS_API_KEY }}
     - name: Lint with flake8
       run: |
         # stop the build if there are Python syntax errors or undefined names
