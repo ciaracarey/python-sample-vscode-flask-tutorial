@@ -27,8 +27,6 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        echo "My service name is $CS_SERVICE" 
-        echo "My service API Key is $CS_API_KEY"
         pip install flake8 pytest --index-url https://$CS_SERVICE:$CS_API_KEY@dl.cloudsmith.io/basic/cloudsmith-test/vul-workflow/python/simple/
         if [ -f requirements.txt ]; then pip install -r requirements.txt --index-url https://$CS_SERVICE:$CS_API_KEY@dl.cloudsmith.io/basic/cloudsmith-test/vul-workflow/python/simple/; fi
       env: 
