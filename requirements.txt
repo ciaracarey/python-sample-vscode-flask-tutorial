@@ -1,2 +1,2 @@
 Flask
-Requests
+Requests=2.6.0
