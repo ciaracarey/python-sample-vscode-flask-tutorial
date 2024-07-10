@@ -15,8 +15,7 @@ permissions:
 env:
   CS_ORG: ciara-demo
   CS_REPO: vulnerability-workflow
-  CS_INDEX_URL: https://${{ secrets.CS_USER }}:${{ secrets.CS_API_KEY }}@dl.cloudsmith.io/basic/${{ env.CS_ORG }}/${{ env.CS_REPO }}/python/simple/
-
+  
 jobs:
   build:
 
@@ -35,8 +34,7 @@ jobs:
         pip install flake8 pytest --index-url $CS_INDEX_URL
         if [ -f requirements.txt ]; then pip install -r requirements.txt --index-url $CS_INDEX_URL; fi
       env: 
-        CS_SERVICE: ${{ secrets.CS_USER }}
-        CS_API_KEY: ${{ secrets.CS_API_KEY }} 
+        CS_INDEX_URL: https://${{ secrets.CS_USER }}:${{ secrets.CS_API_KEY }}@dl.cloudsmith.io/basic/${{ env.CS_ORG }}/${{ env.CS_REPO }}/python/simple/
     - name: Lint with flake8
       run: |
         # stop the build if there are Python syntax errors or undefined names
