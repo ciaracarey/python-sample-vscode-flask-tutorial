@@ -31,8 +31,12 @@ jobs:
       - name: Get OIDC token
         id: oidc-token
         run: |
-          value=$(curl -H "Authorization: bearer ${{ secrets.GITHUB_TOKEN }}" "$ACTIONS_ID_TOKEN_REQUEST_URL&audience=api://AzureADTokenExchange" | jq '.value')
-          token=$(curl -X POST -H "Content-Type: application/json" -d "{\"oidc_token\":$value, \"service_slug\":\"gha-service\"}" https://api.cloudsmith.io/openid/${{ env.CS_ORG }}/ | jq -r '.token')
+          echo "Requesting OIDC token..."
+          response=$(curl -H "Authorization: bearer ${{ secrets.GITHUB_TOKEN }}" "$ACTIONS_ID_TOKEN_REQUEST_URL&audience=api://AzureADTokenExchange")
+          echo "Response: $response"
+          value=$(echo $response | jq -r '.value')
+          echo "Value: $value"
+          token=$(curl -X POST -H "Content-Type: application/json" -d "{\"oidc_token\":\"$value\", \"service_slug\":\"gha-service\"}" https://api.cloudsmith.io/openid/${{ env.CS_ORG }}/ | jq -r '.token')
           echo "CLOUDSMITH_API_KEY=$token" >> $GITHUB_ENV
           echo "PIP_INDEX_URL=https://$token@dl.cloudsmith.io/basic/${{ env.CS_ORG }}/${{ env.CS_REPO }}/python/simple/" >> $GITHUB_ENV
       - name: Install dependencies
