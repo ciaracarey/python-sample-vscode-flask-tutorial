@@ -15,7 +15,7 @@ permissions:
 
 env:
   CS_ORG: ciara-demo
-  CS_REPO: vulnerability-workflow
+  CS_REPO: ciara-test
 
 jobs:
   build:
