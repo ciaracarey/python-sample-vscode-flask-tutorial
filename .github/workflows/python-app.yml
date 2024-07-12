@@ -41,7 +41,7 @@ jobs:
           pip install flake8 pytest --index-url $PIP_INDEX_URL
           if [ -f requirements.txt ]; then pip install -r requirements.txt --index-url $PIP_INDEX_URL; fi
         env:
-          PIP_INDEX_URL: ${{ env.CLOUDSMITH_API_KEY }}
+          PIP_INDEX_URL: ${{ env.PIP_INDEX_URL }}
       - name: Lint with flake8
         run: |
           # stop the build if there are Python syntax errors or undefined names
