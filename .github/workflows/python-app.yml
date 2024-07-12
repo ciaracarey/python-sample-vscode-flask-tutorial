@@ -38,8 +38,11 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install flake8 pytest --index-url $PIP_INDEX_URL
-          if [ -f requirements.txt ]; then pip install -r requirements.txt --index-url $PIP_INDEX_URL; fi
+          pip install flake8 pytest --index-url $CS_INDEX_URL
+          if [ -f requirements.txt ]; then pip install -r requirements.txt --index-url $CS_INDEX_URL; fi
+        env: 
+          CS_INDEX_URL: https://${{ secrets.CS_USER }}:${{ secrets.CS_API_KEY }}@dl.cloudsmith.io/basic/${{ env.CS_ORG }}/${{ env.CS_REPO }}/python/simple/
+
       - name: Lint with flake8
         run: |
           # stop the build if there are Python syntax errors or undefined names
