@@ -1,4 +1,4 @@
-# This workflow will install Python dependencies, run tests and lint with a single version of Python
++# This workflow will install Python dependencies, run tests and lint with a single version of Python
 # For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-python
 
 name: Python application
@@ -42,7 +42,7 @@ jobs:
           if [ -f requirements.txt ]; then pip install -r requirements.txt --index-url $S_INDEX_URL; fi
         env: 
           CS_INDEX_URL: https://${{ secrets.CS_USER }}:${{ secrets.CS_API_KEY }}@dl.cloudsmith.io/basic/${{ env.CS_ORG }}/${{ env.CS_REPO }}/python/simple/
-          S_INDEX_URL: https://${{ secrets.S_API_KEY }}@dl.cloudsmith.io/basic/${{ env.CS_ORG }}/${{ env.CS_REPO }}/python/simple/
+          S_INDEX_URL: https://${{ secrets.S_USER }}:${{ secrets.S_API_KEY }}@dl.cloudsmith.io/basic/${{ env.CS_ORG }}/${{ env.CS_REPO }}/python/simple/
 
       - name: Lint with flake8
         run: |
