@@ -1,15 +1,10 @@
-# This workflow will install Python dependencies, run tests and lint with a single version of Python
-# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-python
-
 name: Python application
-
 
 on:
   push:
     branches: ["main"]
   pull_request:
     branches: ["main"]
-
 
 permissions:
   contents: read
@@ -26,30 +21,36 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
+
       - name: Set up Python 3.10
         uses: actions/setup-python@v3
         with:
           python-version: "3.10"
-      # We’re retrieving an OIDC token securely from GitHub Actions, 
-      # ensuring that our access to Cloudsmith remains authenticated and encrypted, 
-      # minimizing security risks associated with token management
-      - name: Get OIDC token
-        id: oidc-token
+
+      # OIDC token retrieval and authentication with Cloudsmith
+      - name: Install Cloudsmith CLI
+        uses: cloudsmith-io/cloudsmith-cli-action@v1.0.0
+        with:
+          oidc-namespace: ${{ env.CS_ORG }}
+          oidc-service-slug: 'gha-service'
+
+      # After authenticating with Cloudsmith, set the PIP_INDEX_URL environment variable
+      - name: Set PIP index URL for Cloudsmith
         run: |
-          value=$(curl -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" "$ACTIONS_ID_TOKEN_REQUEST_URL&audience=api://AzureADTokenExchange" | jq -r '.value')
-          token=$(curl -X POST -H "Content-Type: application/json" -d "{\"oidc_token\":\"$value\", \"service_slug\":\"gha-service\"}" https://api.cloudsmith.io/openid/${{ env.CS_ORG }}/ | jq -r '.token')
-          echo "PIP_INDEX_URL=https://token:$token@dl.cloudsmith.io/basic/${{ env.CS_ORG }}/${{ env.CS_REPO }}/python/simple/" >> $GITHUB_ENV
+          echo "PIP_INDEX_URL=https://token:$CLOUDSMITH_API_KEY@dl.cloudsmith.io/basic/${{ env.CS_ORG }}/${{ env.CS_REPO }}/python/simple/" >> $GITHUB_ENV
+
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install flake8 pytest --index-url $PIP_INDEX_URL
           if [ -f requirements.txt ]; then pip install -r requirements.txt --index-url $PIP_INDEX_URL; fi
+
       - name: Lint with flake8
         run: |
-          # stop the build if there are Python syntax errors or undefined names
           flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
-          # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
           flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+
       - name: Test with pytest
         run: |
           pytest
+
