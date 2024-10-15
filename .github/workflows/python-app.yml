@@ -12,7 +12,7 @@ permissions:
 
 env:
   CS_ORG: ciara-demo
-  CS_REPO: aerlingus-nonprod
+  CS_REPO: aerlingus-prod
 
 jobs:
   build:
