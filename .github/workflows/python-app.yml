@@ -13,6 +13,7 @@ permissions:
 env:
   CS_ORG: ciara-demo
   CS_REPO: aerlingus-nonprod
+  SERVICE: ci_aerlingus_service
 
 jobs:
   build:
@@ -32,7 +33,7 @@ jobs:
         uses: cloudsmith-io/cloudsmith-cli-action@v1.0.0
         with:
           oidc-namespace: ${{ env.CS_ORG }}
-          oidc-service-slug: 'aerlingus-ci'
+          oidc-service-slug: ${{ env.SERVICE }}
 
       # After authenticating with Cloudsmith, set the PIP_INDEX_URL environment variable
       - name: Set PIP index URL for Cloudsmith
