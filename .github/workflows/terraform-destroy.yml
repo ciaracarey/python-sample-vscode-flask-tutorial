@@ -34,6 +34,10 @@ jobs:
         working-directory: ./terraform  # Set the correct working directory
         run: terraform init
 
+      - name: List Terraform State
+        working-directory: ./terraform  # Set the correct working directory
+        run: terraform state list  # This will show what resources Terraform is tracking
+
       - name: Terraform Destroy
         working-directory: ./terraform  # Set the correct working directory
         run: terraform destroy -auto-approve  # Automatically approve the destroy action
