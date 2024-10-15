@@ -3,6 +3,10 @@ name: Terraform
 on:
   workflow_dispatch:  # This allows manual triggering of the workflow
 
+permissions:
+  contents: read
+  id-token: write  # Necessary for GH Identity Provider to write the JWT token which Cloudsmith needs to read
+
 jobs:
   terraform:
     runs-on: ubuntu-latest
