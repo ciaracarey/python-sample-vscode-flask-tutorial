@@ -1,4 +1,4 @@
-name: Terraform
+name: Terraform Destroy
 
 on:
   workflow_dispatch:  # This allows manual triggering of the workflow
@@ -34,10 +34,6 @@ jobs:
         working-directory: ./terraform  # Set the correct working directory
         run: terraform init
 
-      - name: Terraform Plan
+      - name: Terraform Destroy
         working-directory: ./terraform  # Set the correct working directory
-        run: terraform plan
-
-      - name: Terraform Apply
-        working-directory: ./terraform  # Set the correct working directory
-        run: terraform apply -auto-approve
+        run: terraform destroy -auto-approve  # Automatically approve the destroy action
