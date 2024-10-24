@@ -35,6 +35,10 @@ jobs:
           oidc-namespace: ${{ env.CS_ORG }}
           oidc-service-slug: ${{ env.SERVICE }}
 
+      - name: Pull Python Docker base image from Cloudsmith
+        run: |
+          docker pull docker.cloudsmith.io/${{ env.CS_ORG }}/${{ env.CS_REPO }}/python:3.12
+
       # After authenticating with Cloudsmith, set the PIP_INDEX_URL environment variable
       - name: Set PIP index URL for Cloudsmith
         run: |
