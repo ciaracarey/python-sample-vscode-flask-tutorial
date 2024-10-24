@@ -39,7 +39,7 @@ jobs:
       # Step to authenticate with Cloudsmith Docker Registry using OIDC token
       - name: Docker login with OIDC token
         run: |
-          echo $CLOUDSMITH_API_KEY | docker login docker.cloudsmith.io -u oauth2 --password-stdin
+          echo $CLOUDSMITH_API_KEY | docker login docker.cloudsmith.io -u ${{ env.SERVICE }} --password-stdin
 
       # Pull Python Docker base image from Cloudsmith
       - name: Pull Python Docker base image from Cloudsmith
