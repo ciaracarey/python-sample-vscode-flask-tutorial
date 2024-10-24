@@ -35,16 +35,6 @@ jobs:
         with:
           oidc-namespace: ${{ env.CS_ORG }}
           oidc-service-slug: ${{ env.SERVICE }}
-      
-      # Step to authenticate with Cloudsmith Docker Registry using OIDC token
-      - name: Docker login with OIDC token
-        run: |
-           echo $CLOUDSMITH_API_KEY | docker login docker.cloudsmith.io -u ${{ env.SERVICE }} --password-stdin
-
-      # Pull Python Docker base image from Cloudsmith
-      - name: Pull Python Docker base image from Cloudsmith
-        run: |
-          docker pull --platform linux/amd64 docker.cloudsmith.io/${{ env.CS_ORG }}/${{ env.CS_REPO }}/python:3.12-alpine
           
       # After authenticating with Cloudsmith, set the PIP_INDEX_URL environment variable
       - name: Set PIP index URL for Cloudsmith
