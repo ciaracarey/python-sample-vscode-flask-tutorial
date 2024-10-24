@@ -44,7 +44,7 @@ jobs:
       # Pull Python Docker base image from Cloudsmith
       - name: Pull Python Docker base image from Cloudsmith
         run: |
-          docker pull docker.cloudsmith.io/${{ env.CS_ORG }}/${{ env.CS_REPO }}/python:3.12
+          docker pull --platform linux/amd64 docker.cloudsmith.io/${{ env.CS_ORG }}/${{ env.CS_REPO }}/python:3.12
           
       # After authenticating with Cloudsmith, set the PIP_INDEX_URL environment variable
       - name: Set PIP index URL for Cloudsmith
