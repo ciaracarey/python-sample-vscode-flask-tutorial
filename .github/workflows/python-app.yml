@@ -12,8 +12,8 @@ permissions:
 
 env:
   CS_ORG: ciara-demo
-  CS_REPO: aerlingus-nonprod
-  SERVICE: ci_aerlingus_service
+  CS_REPO: acme-nonprod
+  SERVICE: ci_acme_service
 
 jobs:
   build:
