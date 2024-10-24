@@ -14,6 +14,7 @@ env:
   CS_ORG: ciara-demo
   CS_REPO: acme-nonprod
   SERVICE: ci_acme_service
+  CS_DOCKER_REGISTRY: docker.cloudsmith.io
 
 jobs:
   build:
@@ -34,11 +35,14 @@ jobs:
         with:
           oidc-namespace: ${{ env.CS_ORG }}
           oidc-service-slug: ${{ env.SERVICE }}
-          
-      # Use OIDC token (CLOUDSMITH_API_KEY) to log in to Docker
-      - name: Docker login
-        run: |
-          echo $CLOUDSMITH_API_KEY | docker login docker.cloudsmith.io -u ${{ env.CS_ORG }}/${{ env.CS_REPO }} --password-stdin
+           
+      # Step to authenticate with Cloudsmith Docker Registry
+      - name: Authenticate with Cloudsmith Docker Registry
+        uses: docker/login-action@v2
+        with:
+          registry: ${{ env.CS_DOCKER_REGISTRY }}
+          username: ${{ env.CS_ORG }}/${{ env.CS_REPO }}
+          password: $CLOUDSMITH_API_KEY
 
       # Pull Python Docker base image from Cloudsmith
       - name: Pull Python Docker base image from Cloudsmith
