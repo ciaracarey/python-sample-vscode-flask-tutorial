@@ -41,7 +41,8 @@ jobs:
         uses: docker/login-action@v2
         with:
           registry: ${{ env.CS_DOCKER_REGISTRY }}
-          username: ${{ env.CS_ORG }}/${{ env.CS_REPO }}
+          username: oauth2
+          #${{ env.CS_ORG }}/${{ env.CS_REPO }}
           password: $CLOUDSMITH_API_KEY
 
       # Pull Python Docker base image from Cloudsmith
