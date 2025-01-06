@@ -12,7 +12,7 @@ permissions:
 
 env:
   CS_ORG: ciara-demo
-  CS_REPO: acme-nonprod
+  CS_REPO: vulnerability-workflow
   SERVICE: ci_acme_service
   CS_DOCKER_REGISTRY: docker.cloudsmith.io
 
