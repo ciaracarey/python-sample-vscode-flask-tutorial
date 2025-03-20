@@ -1,1 +1,2 @@
 Requests==2.6.1
+Pillow==8.1.0
