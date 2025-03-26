@@ -12,7 +12,7 @@ permissions:
   id-token: write  # Necessary for GH Identity Provider to write the JWT token which Cloudsmith needs to read
 
 env:
-  CS_ORG: ciara-demo
+  CS_ORG: globex-innovations
   CS_REPO: acme-nonprod
   SERVICE: ci_acme_service
   CS_DOCKER_REGISTRY: docker.cloudsmith.io
