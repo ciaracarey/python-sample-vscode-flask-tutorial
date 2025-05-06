@@ -1,4 +1,4 @@
 Requests==2.6.1
 ansible==9.5.1
 pyspread
-psychopy
+mlpy
