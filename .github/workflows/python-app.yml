@@ -47,6 +47,11 @@ jobs:
       #    python -m pip install --upgrade pip
       #    pip install flake8 pytest --index-url $PIP_INDEX_URL
       #    if [ -f requirements.txt ]; then pip install -r requirements.txt --index-url $PIP_INDEX_URL; fi
+
+      - name: Install uv and compile requirements
+        run: |
+          pip install uv
+          uv pip compile requirements.in --output-file=requirements.txt
       
       # 5. Install dependencies with **uv**
       - name: Install deps (uv)
@@ -54,8 +59,7 @@ jobs:
           pip install uv                          # bootstrap once
           uv pip install --system --upgrade pip
           uv pip install --system flake8 pytest            # tooling
-          if [ -f requirements.txt ]; then \
-            uv pip install --system -r requirements.txt; fi
+          uv pip install --system -r requirements.txt
 
       # 6. Run tests
       - name: Run tests
@@ -65,14 +69,8 @@ jobs:
       - name: Build package
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         run: |
-          uv pip install --system build
+          uv pip install --system build twine
           python -m build
-
-      # 8. Upload to Cloudsmith (twine)
-      - name: Publish to Cloudsmith
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        run: |
-          uv pip install twine
           twine upload \
             --repository-url https://api.cloudsmith.io/python/${{ env.CS_ORG }}/${{ env.CS_REPO }}/ \
             --username token \
