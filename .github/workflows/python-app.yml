@@ -37,11 +37,10 @@ jobs:
           oidc-service-slug: ${{ env.SERVICE }}
           oidc-auth-only: 'true'
           
-      # After Cloudsmith OIDC step
-      - name: Export PIP index URL
+      # After authenticating with Cloudsmith, set the PIP_INDEX_URL environment variable
+      - name: Set PIP index URL for Cloudsmith
         run: |
-          echo "PIP_INDEX_URL=https://token:${CLOUDSMITH_API_KEY}@dl.cloudsmith.io/basic/${CS_ORG}/${CS_REPO}/python/simple/" >> "$GITHUB_ENV"
-          shell: bash
+          echo "PIP_INDEX_URL=https://token:$CLOUDSMITH_API_KEY@dl.cloudsmith.io/basic/${{ env.CS_ORG }}/${{ env.CS_REPO }}/python/simple/" >> $GITHUB_ENV
   
       #- name: Install dependencies
       #  run: |
