@@ -65,7 +65,7 @@ jobs:
       - name: Build package
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         run: |
-          uv pip install build
+          uv pip install --system build
           python -m build
 
       # 8. Upload to Cloudsmith (twine)
