@@ -37,14 +37,47 @@ jobs:
           oidc-service-slug: ${{ env.SERVICE }}
           oidc-auth-only: 'true'
           
-      # After authenticating with Cloudsmith, set the PIP_INDEX_URL environment variable
-      - name: Set PIP index URL for Cloudsmith
+      # After Cloudsmith OIDC step
+      - name: Export PIP index URL
         run: |
-          echo "PIP_INDEX_URL=https://token:$CLOUDSMITH_API_KEY@dl.cloudsmith.io/basic/${{ env.CS_ORG }}/${{ env.CS_REPO }}/python/simple/" >> $GITHUB_ENV
+          echo "PIP_INDEX_URL=https://token:${CLOUDSMITH_API_KEY}@dl.cloudsmith.io/basic/${CS_ORG}/${CS_REPO}/python/simple/" >> "$GITHUB_ENV"
+          shell: bash
+  
+      #- name: Install dependencies
+      #  run: |
+      #    python -m pip install --upgrade pip
+      #    pip install flake8 pytest --index-url $PIP_INDEX_URL
+      #    if [ -f requirements.txt ]; then pip install -r requirements.txt --index-url $PIP_INDEX_URL; fi
+      
+      # 5. Install dependencies with **uv**
+      - name: Install deps (uv)
+        run: |
+          pip install uv                          # bootstrap once
+          uv pip install --upgrade pip
+          uv pip install flake8 pytest            # tooling
+          if [ -f requirements.txt ]; then \
+            uv pip install -r requirements.txt; fi
 
-      - name: Install dependencies
+      # 6. Run tests
+      - name: Run tests
+        run: pytest -q
+
+      # 7. Build wheel + sdist
+      - name: Build package
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         run: |
-          python -m pip install --upgrade pip
-          pip install flake8 pytest --index-url $PIP_INDEX_URL
-          if [ -f requirements.txt ]; then pip install -r requirements.txt --index-url $PIP_INDEX_URL; fi
+          uv pip install build
+          python -m build
+
+      # 8. Upload to Cloudsmith (twine)
+      - name: Publish to Cloudsmith
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: |
+          uv pip install twine
+          twine upload \
+            --repository-url https://api.cloudsmith.io/python/${{ env.CS_ORG }}/${{ env.CS_REPO }}/ \
+            --username token \
+            --password $CLOUDSMITH_API_KEY \
+            dist/*
+
 
