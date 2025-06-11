@@ -52,10 +52,10 @@ jobs:
       - name: Install deps (uv)
         run: |
           pip install uv                          # bootstrap once
-          uv pip install --upgrade pip
-          uv pip install flake8 pytest            # tooling
+          uv pip install --system --upgrade pip
+          uv pip install --system flake8 pytest            # tooling
           if [ -f requirements.txt ]; then \
-            uv pip install -r requirements.txt; fi
+            uv pip install --system -r requirements.txt; fi
 
       # 6. Run tests
       - name: Run tests
