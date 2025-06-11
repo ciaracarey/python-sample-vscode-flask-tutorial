@@ -13,8 +13,8 @@ permissions:
 
 env:
   CS_ORG: globex-innovations
-  CS_REPO: hiya-nonprod
-  SERVICE: ci_hiya_service
+  CS_REPO: future-nonprod
+  SERVICE: ci_future_service
   CS_DOCKER_REGISTRY: docker.cloudsmith.io
 
 jobs:
