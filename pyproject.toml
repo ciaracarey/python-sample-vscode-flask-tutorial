@@ -1,0 +1,10 @@
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "python-sample-vscode-flask-tutorial"
+version = "0.1.0"
+description = "Sample project for Duolingo Cloudsmith PoC"
+authors = [{ name = "dev", email = "dev@dev.com" }]
+dependencies = []
