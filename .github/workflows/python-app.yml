@@ -3,68 +3,51 @@ name: Python CI (uv + Cloudsmith)
 on:
   push:          { branches: ["main"] }
   pull_request:  { branches: ["main"] }
-  workflow_dispatch:
+  workflow_dispatch: {}
 
 permissions:
   contents: read
-  id-token: write        # for Cloudsmith OIDC
+  id-token: write      # Cloudsmith OIDC
 
 env:
-  CS_ORG:   globex-innovations
-  CS_REPO:  future-nonprod
-  SERVICE:  ci_future_service
+  CS_ORG:  globex-innovations
+  CS_REPO: future-nonprod
+  SERVICE: ci_future_service
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    environment: dev
-
     steps:
-      - uses: actions/checkout@v4
+    - uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.10"
+    - uses: actions/setup-python@v5
+      with:
+        python-version: "3.10"
 
-      # 1) OIDC login – creates $CLOUDSMITH_API_KEY for this job
-      - name: Cloudsmith OIDC login
-        uses: cloudsmith-io/cloudsmith-cli-action@v1.0.2
-        with:
-          oidc-namespace:     ${{ env.CS_ORG }}
-          oidc-service-slug:  ${{ env.SERVICE }}
-          oidc-auth-only: "true"
+    # 1. OIDC → $CLOUDSMITH_API_KEY
+    - name: Cloudsmith login (OIDC)
+      uses: cloudsmith-io/cloudsmith-cli-action@v1.0.2
+      with:
+        oidc-namespace:    ${{ env.CS_ORG }}
+        oidc-service-slug: ${{ env.SERVICE }}
+        oidc-auth-only:    "true"
 
-      # 2) Export Cloudsmith indexes for *all* future steps
-      - name: Export Cloudsmith index variables
-        run: |
-          CS_PY_INDEX="https://token:${CLOUDSMITH_API_KEY}@dl.cloudsmith.io/basic/${{ env.CS_ORG }}/${{ env.CS_REPO }}/python/simple/"
+    # 2. Export index variables
+    - name: Export Cloudsmith indexes
+      run: |
+        CS_PY_INDEX="https://token:${CLOUDSMITH_API_KEY}@dl.cloudsmith.io/basic/${{ env.CS_ORG }}/${{ env.CS_REPO }}/python/simple/"
+        {
+          echo "PIP_INDEX_URL=${CS_PY_INDEX}"
+          echo "UV_PIP_INDEX_URL=${CS_PY_INDEX}"
+          echo "UV_PIP_NO_INDEX=1"        # forbid fallback to pypi.org
+          echo "UV_PIP_VERBOSE=2"         # log every request
+        } >> "$GITHUB_ENV"
 
-          echo "PIP_INDEX_URL=${CS_PY_INDEX}"   >> "$GITHUB_ENV"
-          echo "UV_PIP_INDEX_URL=${CS_PY_INDEX}" >> "$GITHUB_ENV"
-          echo "UV_PIP_NO_INDEX=1"              >> "$GITHUB_ENV"   # forbid fallback to PyPI
+    # 3. Install deps (no compile dance needed)
+    - name: Install deps with uv
+      run: |
+        pip install uv
+        uv pip install --system --no-cache-dir -r requirements.in
 
-      # 3) Install/build/test with uv
-      - name: Install uv and project deps
-        run: |
-          pip install uv
-          uv pip install --system -r requirements.in   # installs *only* via Cloudsmith
-
-      - name: Run tests
-        run: pytest -q
-
-      # 4) OPTIONAL packaging (commented until you add pyproject.toml / setup.py)
-      # - name: Build & publish to Cloudsmith
-      #   if: github.event_name == 'push' && github.ref == 'refs/heads/main' && hashFiles('pyproject.toml') != ''
-      #   run: |
-      #     uv pip install --system build twine
-      #     python -m build
-      #     twine upload \
-      #       --repository-url https://api.cloudsmith.io/python/${{ env.CS_ORG }}/${{ env.CS_REPO }}/ \
-      #       --username token \
-      #       --password "${CLOUDSMITH_API_KEY}" \
-      #       dist/*
-
-
-
-
+    - name: Run tests
+      run: pytest -q
