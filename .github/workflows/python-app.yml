@@ -43,7 +43,7 @@ jobs:
     - name: Install dependencies (uv)
       run: |
         pip install uv
-        uv pip sync --system 
+        uv pip install --system --no-cache -r pyproject.toml
         
     #- name: Run tests
     #  run: pytest -q
