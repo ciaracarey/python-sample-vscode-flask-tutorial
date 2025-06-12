@@ -16,7 +16,7 @@ env:
   CS_REPO: future-nonprod
   SERVICE: ci_future_service           # Cloudsmith service-account slug
   # Single source-of-truth for index
-  CS_PY_INDEX: https://token:${{ secrets.CLOUDSMITH_API_KEY }}@dl.cloudsmith.io/basic/globex-innovations/future-nonprod/python/simple/
+  #CS_PY_INDEX: https://token:${{ secrets.CLOUDSMITH_API_KEY }}@dl.cloudsmith.io/basic/globex-innovations/future-nonprod/python/simple/
 
 jobs:
   build:
@@ -38,6 +38,11 @@ jobs:
           oidc-namespace: ${{ env.CS_ORG }}
           oidc-service-slug: ${{ env.SERVICE }}
           oidc-auth-only: "true"
+
+      # After authenticating with Cloudsmith, set the PIP_INDEX_URL environment variable
+      - name: Set PIP index URL for Cloudsmith
+        run: |
+          echo "CS_PY_INDEX=https://token:$CLOUDSMITH_API_KEY@dl.cloudsmith.io/basic/${{ env.CS_ORG }}/${{ env.CS_REPO }}/python/simple/" >> $GITHUB_ENV
 
       # Make uv/pip **refuse** to consult PyPI directly
       - name: Export Cloudsmith index for uv/pip
