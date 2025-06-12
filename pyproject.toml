@@ -1,0 +1,14 @@
+[project]
+name            = "sample-flask-app"
+version         = "0.1.0"
+requires-python = ">=3.10"
+dependencies    = [
+    "requests==2.6.0"
+]
+
+# ---------- uv-specific settings ----------
+[[tool.uv.index]]
+name = "cloudsmith"                                   # any slug you like
+url  = "https://dl.cloudsmith.io/basic/globex-innovations/future-nonprod/python/simple/"
+# If you later want to *publish*, add:
+# publish-url = "https://api.cloudsmith.io/python/globex-innovations/future-nonprod/"
