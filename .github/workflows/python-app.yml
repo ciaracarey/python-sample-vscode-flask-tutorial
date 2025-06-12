@@ -43,7 +43,7 @@ jobs:
     - name: Install dependencies (uv)
       run: |
         pip install uv
-        uv pip install --system --all --no-cache
+        uv pip install --system --all-extras --no-cache
         
     #- name: Run tests
     #  run: pytest -q
