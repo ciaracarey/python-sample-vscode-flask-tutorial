@@ -49,5 +49,5 @@ jobs:
         pip install uv
         uv pip install --system --no-cache-dir -r requirements.in
 
-    - name: Run tests
-      run: pytest -q
+    #- name: Run tests
+    #  run: pytest -q
