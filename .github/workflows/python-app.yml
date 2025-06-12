@@ -1,21 +1,22 @@
-name: Python application
+name: Python CI (uv + Cloudsmith)
 
 on:
-  push: 
-    branches: ["main"]  
-  pull_request: 
+  push:
     branches: ["main"]
-  workflow_dispatch: 
+  pull_request:
+    branches: ["main"]
+  workflow_dispatch:
 
 permissions:
   contents: read
-  id-token: write  # Necessary for GH Identity Provider to write the JWT token which Cloudsmith needs to read
+  id-token: write           # for Cloudsmith OIDC
 
 env:
-  CS_ORG: globex-innovations
+  CS_ORG:  globex-innovations
   CS_REPO: future-nonprod
-  SERVICE: ci_future_service
-  CS_DOCKER_REGISTRY: docker.cloudsmith.io
+  SERVICE: ci_future_service           # Cloudsmith service-account slug
+  # Single source-of-truth for index
+  CS_PY_INDEX: https://token:${{ secrets.CLOUDSMITH_API_KEY }}@dl.cloudsmith.io/basic/globex-innovations/future-nonprod/python/simple/
 
 jobs:
   build:
@@ -25,56 +26,48 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up Python 3.10
+      - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.10"
 
-      - name: Auth to Cloudsmith with OIDC
+      # --- Authenticate to Cloudsmith (OIDC, no secrets checked-in) ---
+      - name: Cloudsmith OIDC login
         uses: cloudsmith-io/cloudsmith-cli-action@v1.0.2
         with:
           oidc-namespace: ${{ env.CS_ORG }}
           oidc-service-slug: ${{ env.SERVICE }}
-          oidc-auth-only: 'true'
-          
-      # After authenticating with Cloudsmith, set the PIP_INDEX_URL environment variable
-      - name: Set PIP index URL for Cloudsmith
-        run: |
-          echo "PIP_INDEX_URL=https://token:$CLOUDSMITH_API_KEY@dl.cloudsmith.io/basic/${{ env.CS_ORG }}/${{ env.CS_REPO }}/python/simple/" >> $GITHUB_ENV
-  
-      #- name: Install dependencies
-      #  run: |
-      #    python -m pip install --upgrade pip
-      #    pip install flake8 pytest --index-url $PIP_INDEX_URL
-      #    if [ -f requirements.txt ]; then pip install -r requirements.txt --index-url $PIP_INDEX_URL; fi
+          oidc-auth-only: "true"
 
-      - name: Install uv and compile requirements
+      # Make uv/pip **refuse** to consult PyPI directly
+      - name: Export Cloudsmith index for uv/pip
+        run: |
+          echo "PIP_INDEX_URL=${{ env.CS_PY_INDEX }}" >> $GITHUB_ENV
+          echo "UV_PIP_INDEX_URL=${{ env.CS_PY_INDEX }}" >> $GITHUB_ENV
+          echo "UV_PIP_NO_INDEX=1"              >> $GITHUB_ENV   # hard-fail if dependency isn’t in Cloudsmith/upstream
+
+      # --- Install deps with uv (no compile file dance needed) ---
+      - name: Install dependencies with uv
         run: |
           pip install uv
-          uv pip compile requirements.in --output-file=requirements.txt
-      
-      # 5. Install dependencies with **uv**
-      - name: Install deps (uv)
-        run: |
-          pip install uv                          # bootstrap once
-          uv pip install --system --upgrade pip
-          uv pip install --system flake8 pytest            # tooling
-          uv pip install --system -r requirements.txt
+          uv pip install --system -r requirements.in
 
-      # 6. Run tests
       - name: Run tests
         run: pytest -q
 
-      # 7. Build wheel + sdist
-      - name: Build package
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        run: |
-          uv pip install --system build twine
-          python -m build
-          twine upload \
-            --repository-url https://api.cloudsmith.io/python/${{ env.CS_ORG }}/${{ env.CS_REPO }}/ \
-            --username token \
-            --password $CLOUDSMITH_API_KEY \
-            dist/*
+      # -----------------------------------------------------------------
+      # OPTIONAL: Build & upload *when* the project contains pyproject.toml
+      # -----------------------------------------------------------------
+      # - name: Build & publish
+      #   if: github.event_name == 'push' && github.ref == 'refs/heads/main' && hashFiles('pyproject.toml') != ''
+      #   run: |
+      #     uv pip install --system build twine
+      #     python -m build
+      #     twine upload \
+      #       --repository-url https://api.cloudsmith.io/python/${{ env.CS_ORG }}/${{ env.CS_REPO }}/ \
+      #       --username token \
+      #       --password ${{ secrets.CLOUDSMITH_API_KEY }} \
+      #       dist/*
+
 
 
