@@ -42,11 +42,17 @@ jobs:
           echo "UV_PIP_VERBOSE=2"    # log every request
         } >> "$GITHUB_ENV"
 
-    # 3. Install dependencies with uv
-    - name: Install deps (uv)
+    - name: Install dependencies
       run: |
-        pip install uv
-        uv pip install --system --no-cache-dir -r requirements.in
+        python -m pip install --upgrade pip
+        pip install flake8 pytest --index-url $PIP_INDEX_URL
+        if [ -f requirements.txt ]; then pip install -r requirements.txt --index-url $PIP_INDEX_URL; fi
+
+    # 3. Install dependencies with uv
+    #- name: Install deps (uv)
+    #  run: |
+    #    pip install uv
+    #    uv pip install --system --no-cache-dir -r requirements.in
 
    # - name: Run tests
    #   run: pytest -q
