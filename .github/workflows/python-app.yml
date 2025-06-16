@@ -1,4 +1,4 @@
-name: Python CI (uv + Cloudsmith)
+name: Python CI (uv + Cloudsmith — wheel-only)
 
 on:
   push:          { branches: ["main"] }
@@ -7,16 +7,17 @@ on:
 
 permissions:
   contents: read
-  id-token: write                    # Cloudsmith OIDC
+  id-token: write               # needed for Cloudsmith OIDC
 
 env:
   CS_ORG:   globex-innovations
   CS_REPO:  acme-nonprod
-  SERVICE:  ci_acme_service        # Cloudsmith service-account
+  SERVICE:  ci_acme_service      # Cloudsmith service-account
 
 jobs:
   build:
     runs-on: ubuntu-latest
+
     steps:
     - uses: actions/checkout@v4
 
@@ -31,28 +32,31 @@ jobs:
         oidc-service-slug: ${{ env.SERVICE }}
         oidc-auth-only:    "true"
 
-    # 2. Export creds for uv (match the [[tool.uv.index]] name)
+    # 2. Export creds for uv (match [[tool.uv.index]] name = "cloudsmith")
     - name: Export Cloudsmith creds for uv
       run: |
-        echo "UV_INDEX_CLOUDSMITH_USERNAME=token"                          >> "$GITHUB_ENV"
-        echo "UV_INDEX_CLOUDSMITH_PASSWORD=$CLOUDSMITH_API_KEY"            >> "$GITHUB_ENV"
-        echo "UV_PIP_NO_INDEX=1"                                           >> "$GITHUB_ENV"   # forbid fallback to pypi.org
-        echo "UV_PIP_VERBOSE=2"                                            >> "$GITHUB_ENV"   # log every fetch
+        echo "UV_INDEX_CLOUDSMITH_USERNAME=token"           >> "$GITHUB_ENV"
+        echo "UV_INDEX_CLOUDSMITH_PASSWORD=$CLOUDSMITH_API_KEY" >> "$GITHUB_ENV"
+        echo "UV_PIP_NO_INDEX=1"                            >> "$GITHUB_ENV"   # block fallback to PyPI
+        echo "UV_PIP_VERBOSE=2"                             >> "$GITHUB_ENV"
+        echo "UV_PUBLISH_USERNAME=token"                    >> "$GITHUB_ENV"
+        echo "UV_PUBLISH_PASSWORD=$CLOUDSMITH_API_KEY"      >> "$GITHUB_ENV"
 
-    - name: Export Cloudsmith creds for uv publish
-      run: |
-        echo "UV_PUBLISH_USERNAME=token" >> "$GITHUB_ENV"
-        echo "UV_PUBLISH_PASSWORD=$CLOUDSMITH_API_KEY" >> "$GITHUB_ENV"
-
-    - name: Install uv and build tools
+    # 3. Install uv & build toolchain
+    - name: Install uv + build
       run: pip install uv build
-    
-    - name: Install dependencies (uv)
+
+    # 4. Install project dependencies (uses pyproject.toml)
+    - name: Install dependencies
       run: uv pip install --system --no-cache -r pyproject.toml
-    
-    - name: Build and publish with uv
+
+    # 5. Build *wheel only* and publish
+    - name: Build wheel & publish to Cloudsmith
       if: github.ref == 'refs/heads/main'
       run: |
-        python -m build
-        uv publish --index cloudsmith
+        python -m build --wheel                  # produces dist/*.whl only
+        uv publish --index cloudsmith            # uploads just the wheel
 
+    # (Optional) run tests here
+    # - name: Run tests
+    #   run: pytest -q
