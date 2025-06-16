@@ -39,11 +39,23 @@ jobs:
         echo "UV_PIP_NO_INDEX=1"                                           >> "$GITHUB_ENV"   # forbid fallback to pypi.org
         echo "UV_PIP_VERBOSE=2"                                            >> "$GITHUB_ENV"   # log every fetch
 
+    - name: Export Cloudsmith creds for uv publish
+      run: |
+        echo "UV_PUBLISH_USERNAME=token" >> "$GITHUB_ENV"
+        echo "UV_PUBLISH_PASSWORD=$CLOUDSMITH_API_KEY" >> "$GITHUB_ENV"
+
     # 3. Install deps (uv looks at pyproject.toml OR requirements*)
     - name: Install dependencies (uv)
       run: |
         pip install uv
         uv pip install --system --no-cache -r pyproject.toml
+    
+    - name: Build and publish with uv
+      if: github.ref == 'refs/heads/main'
+      run: |
+        pip install uv build
+        python -m build
+        uv publish --index cloudsmith
         
     #- name: Run tests
     #  run: pytest -q
