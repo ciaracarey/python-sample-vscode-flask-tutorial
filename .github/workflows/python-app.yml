@@ -44,31 +44,15 @@ jobs:
         echo "UV_PUBLISH_USERNAME=token" >> "$GITHUB_ENV"
         echo "UV_PUBLISH_PASSWORD=$CLOUDSMITH_API_KEY" >> "$GITHUB_ENV"
 
-    # 3. Install deps (uv looks at pyproject.toml OR requirements*)
+    - name: Install uv and build tools
+      run: pip install uv build
+    
     - name: Install dependencies (uv)
-      run: |
-        pip install uv
-        uv pip install --system --no-cache -r pyproject.toml
+      run: uv pip install --system --no-cache -r pyproject.toml
     
     - name: Build and publish with uv
       if: github.ref == 'refs/heads/main'
       run: |
-        pip install uv build
         python -m build
         uv publish --index cloudsmith
-        
-    #- name: Run tests
-    #  run: pytest -q
 
-    # 4. OPTIONAL: build & publish if pyproject.toml contains build metadata
-    #    (remove "if: …" once you convert the project)
-    # - name: Build & publish to Cloudsmith
-    #   if: github.ref == 'refs/heads/main'
-    #   run: |
-    #     uv pip install --system build twine
-    #     python -m build
-    #     twine upload \
-    #       --repository-url https://api.cloudsmith.io/python/${{ env.CS_ORG }}/${{ env.CS_REPO }}/ \
-    #       --username token \
-    #       --password $CLOUDSMITH_API_KEY \
-    #       dist/*
