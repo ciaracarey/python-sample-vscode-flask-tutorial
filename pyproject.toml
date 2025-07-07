@@ -10,6 +10,6 @@ dependencies    = [
 # ---------- uv-specific settings ----------
 [[tool.uv.index]]
 name = "cloudsmith"                                   # any slug you like
-url  = "https://dl.cloudsmith.io/basic/globex-innovations/acme-nonprod/python/simple/"
-publish-url = "https://api.cloudsmith.io/python/globex-innovations/acme-nonprod/"
+url  = "https://dl.cloudsmith.io/basic/globex-innovations/abigproject-nonprod/python/simple/"
+publish-url = "https://api.cloudsmith.io/python/globex-innovations/abigproject-nonprod/"
 
