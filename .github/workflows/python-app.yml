@@ -50,13 +50,4 @@ jobs:
     - name: Install dependencies
       run: uv pip install --system --no-cache -r pyproject.toml
 
-    # 5. Build *wheel only* and publish
-    - name: Build wheel & publish to Cloudsmith
-      if: github.ref == 'refs/heads/main'
-      run: |
-        python -m build --wheel                  # produces dist/*.whl only
-        uv publish --index cloudsmith            # uploads just the wheel
-
-    # (Optional) run tests here
-    # - name: Run tests
-    #   run: pytest -q
+    
