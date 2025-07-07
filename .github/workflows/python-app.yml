@@ -11,7 +11,7 @@ permissions:
 
 env:
   CS_ORG:   globex-innovations
-  CS_REPO:  abigproduct-nonprod
+  CS_REPO:  abigproduct-nonprod 
   SERVICE:  ci_abigproduct_service      # Cloudsmith service-account
 
 jobs:
