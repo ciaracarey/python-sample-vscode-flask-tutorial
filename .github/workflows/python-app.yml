@@ -31,23 +31,15 @@ jobs:
         oidc-namespace:    ${{ env.CS_ORG }}
         oidc-service-slug: ${{ env.SERVICE }}
         oidc-auth-only:    "true"
-
-    # 2. Export creds for uv (match [[tool.uv.index]] name = "cloudsmith")
-    - name: Export Cloudsmith creds for uv
+        
+    # After authenticating with Cloudsmith, set the PIP_INDEX_URL environment variable
+    - name: Set PIP index URL for Cloudsmith
       run: |
-        echo "UV_INDEX_CLOUDSMITH_USERNAME=token"           >> "$GITHUB_ENV"
-        echo "UV_INDEX_CLOUDSMITH_PASSWORD=$CLOUDSMITH_API_KEY" >> "$GITHUB_ENV"
-        echo "UV_PIP_NO_INDEX=1"                            >> "$GITHUB_ENV"   # block fallback to PyPI
-        echo "UV_PIP_VERBOSE=2"                             >> "$GITHUB_ENV"
-        echo "UV_PUBLISH_USERNAME=token"                    >> "$GITHUB_ENV"
-        echo "UV_PUBLISH_PASSWORD=$CLOUDSMITH_API_KEY"      >> "$GITHUB_ENV"
-
-    # 3. Install uv & build toolchain
-    - name: Install uv + build
-      run: pip install uv build
-
-    # 4. Install project dependencies (uses pyproject.toml)
+        echo "PIP_INDEX_URL=https://token:$CLOUDSMITH_API_KEY@dl.cloudsmith.io/basic/${{ env.CS_ORG }}/${{ env.CS_REPO }}/python/simple/" >> $GITHUB_ENV
     - name: Install dependencies
-      run: uv pip install --system --no-cache -r pyproject.toml
+      run: |
+        python -m pip install --upgrade pip
+        pip install flake8 pytest --index-url $PIP_INDEX_URL
+        if [ -f requirements.txt ]; then pip install -r requirements.txt --index-url $PIP_INDEX_URL; fi
 
     
