@@ -25,10 +25,8 @@ steps:
   displayName: 'Use Python $(python.version)'
 
 - bash:  |
-    echo "My service name is $CS_SERVICE" 
-    echo "My service API Key is $CS_API_KEY"
     python -m pip install --upgrade pip
-    pip install -r requirements.txt --index-url https://$CS_SERVICE:$CS_API_KEY@dl.cloudsmith.io/basic/demo/azure-devops/python/simple/ 
+    pip install -r requirements.txt --index-url https://$CS_SERVICE:$CS_API_KEY@dl.cloudsmith.io/basic/globex-innovations/acme-nonprod/python/simple/ 
   displayName: 'Install dependencies'
   env:
     CS_API_KEY: $(APIKey)
@@ -38,4 +36,4 @@ steps:
 - script: |
     pip install pytest pytest-azurepipelines
     pytest
-  displayName: 'pytest' 
+  displayName: 'pytest'
