@@ -1,13 +1,16 @@
-# Python package
-# Create and test a Python package on multiple Python versions.
-# Add steps that analyze code, save the dist with the build record, publish to a PyPI-compatible index, and more:
-# https://docs.microsoft.com/azure/devops/pipelines/languages/python
+# azure-pipelines.yml
+# Build & test a Python package using a Cloudsmith private index
 
 trigger:
 - main
 
+# optional: run PR validations too
+pr:
+- main
+
 pool:
   vmImage: ubuntu-latest
+
 strategy:
   matrix:
     Python37:
@@ -15,25 +18,40 @@ strategy:
     Python38:
       python.version: '3.8'
 
-variables: 
-  - group: 'Cloudsmith Secure Variables' # variable group
+# ──────────────────────────────
+# Variables (from Library → Variable groups)
+# ──────────────────────────────
+variables:
+- group: Cloudsmith Secure Variables   # must exist in this project and be authorized
+  # Group should contain:
+  #   APIKey      (secret)
+  #   ServiceName (secret or plain)
 
+# ──────────────────────────────
+# Steps
+# ──────────────────────────────
 steps:
+- checkout: self
+
 - task: UsePythonVersion@0
+  displayName: "Use Python $(python.version)"
   inputs:
     versionSpec: '$(python.version)'
-  displayName: 'Use Python $(python.version)'
+    addToPath: true
 
-- bash:  |
+- bash: |
+    set -euo pipefail
     python -m pip install --upgrade pip
-    pip install -r requirements.txt --index-url https://$CS_SERVICE:$CS_API_KEY@dl.cloudsmith.io/basic/globex-innovations/acme-nonprod/python/simple/ 
-  displayName: 'Install dependencies'
+    # Use Cloudsmith repo that requires service+api key
+    pip install -r requirements.txt \
+      --index-url "https://${CS_SERVICE}:${CS_API_KEY}@dl.cloudsmith.io/basic/globex-innovations/acme-nonprod/python/simple/"
+  displayName: "Install dependencies"
   env:
     CS_API_KEY: $(APIKey)
     CS_SERVICE: $(ServiceName)
 
-
-- script: |
+- bash: |
+    set -euo pipefail
     pip install pytest pytest-azurepipelines
     pytest
-  displayName: 'pytest'
+  displayName: "Run tests"
