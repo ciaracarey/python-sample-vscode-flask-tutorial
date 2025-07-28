@@ -10,6 +10,14 @@ pr:
 pool:
   vmImage: ubuntu-latest
 
+strategy:
+  matrix:
+    Python37:
+      python.version: '3.7'
+    Python38:
+      python.version: '3.8'
+  maxParallel: 1     # <= run the matrix entries one-at-a-time
+
 steps:
 - checkout: self
 
