@@ -4,7 +4,6 @@
 trigger:
 - main
 
-# optional: run PR validations too
 pr:
 - main
 
@@ -13,23 +12,11 @@ pool:
 
 strategy:
   matrix:
-    Python37:
-      python.version: '3.7'
     Python38:
       python.version: '3.8'
+    Python311:
+      python.version: '3.11'
 
-# ──────────────────────────────
-# Variables (from Library → Variable groups)
-# ──────────────────────────────
-variables:
-- group: Cloudsmith Secure Variables   # must exist in this project and be authorized
-  # Group should contain:
-  #   APIKey      (secret)
-  #   ServiceName (secret or plain)
-
-# ──────────────────────────────
-# Steps
-# ──────────────────────────────
 steps:
 - checkout: self
 
@@ -42,13 +29,13 @@ steps:
 - bash: |
     set -euo pipefail
     python -m pip install --upgrade pip
-    # Use Cloudsmith repo that requires service+api key
+    # Install from Cloudsmith (org/repo: globex-innovations/acme-nonprod)
     pip install -r requirements.txt \
       --index-url "https://${CS_SERVICE}:${CS_API_KEY}@dl.cloudsmith.io/basic/globex-innovations/acme-nonprod/python/simple/"
   displayName: "Install dependencies"
   env:
-    CS_API_KEY: $(APIKey)
-    CS_SERVICE: $(ServiceName)
+    CS_API_KEY: $(CS_API_KEY)
+    CS_SERVICE: $(CS_SERVICE)
 
 - bash: |
     set -euo pipefail
