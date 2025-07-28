@@ -1,22 +1,17 @@
 # azure-pipelines.yml
-# Build & test a Python package using a Cloudsmith private index
-
-trigger:
-- main
-
-pr:
-- main
+trigger: [main]
+pr: [main]
 
 pool:
   vmImage: ubuntu-latest
 
 strategy:
   matrix:
-    Python37:
-      python.version: '3.7'
-    Python38:
-      python.version: '3.8'
-  maxParallel: 1     # <= run the matrix entries one-at-a-time
+    Py310:
+      python.version: '3.10'
+    Py312:
+      python.version: '3.12'
+  maxParallel: 1
 
 steps:
 - checkout: self
@@ -30,7 +25,6 @@ steps:
 - bash: |
     set -euo pipefail
     python -m pip install --upgrade pip
-    # Install from Cloudsmith (org/repo: globex-innovations/acme-nonprod)
     pip install -r requirements.txt \
       --index-url "https://${CS_SERVICE}:${CS_API_KEY}@dl.cloudsmith.io/basic/globex-innovations/acme-nonprod/python/simple/"
   displayName: "Install dependencies"
