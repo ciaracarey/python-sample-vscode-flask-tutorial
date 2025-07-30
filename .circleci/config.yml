@@ -6,7 +6,7 @@ jobs:
       - image: cimg/python:3.10   # CircleCI's official Python image
     environment:
       CS_ORG: globex-innovations
-      CS_REPO: acme-prod
+      CS_REPO: acme-nonprod
       SERVICE: ci_acme_service
       # CLOUDSMITH_API_KEY should be stored securely in CircleCI → Project Settings → Environment Variables
     steps:
