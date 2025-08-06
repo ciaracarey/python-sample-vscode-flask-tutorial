@@ -13,8 +13,28 @@ strategy:
       python.version: '3.12'
   maxParallel: 1
 
+variables:
+  CS_ORG: 'globex-innovations'
+  CS_REPO: 'acme-nonprod'
+  CS_SERVICE_SLUG: 'ci_acme_service'   # Cloudsmith service account slug
+
 steps:
 - checkout: self
+
+# 1) Authenticate to Cloudsmith via OIDC
+- task: CloudsmithCliSetupAndAuthenticate@0
+  displayName: "Cloudsmith: CLI setup + OIDC auth"
+  inputs:
+    authMethod: 'oidc'
+    # Entra app values (store as secret variables in ADO Library/Variables)
+    clientId: '$(CS_OIDC_CLIENT_ID)'
+    clientSecret: '$(CS_OIDC_CLIENT_SECRET)'
+    tenantId: '$(CS_OIDC_TENANT_ID)'                # e.g. 1e93d1ef-4a1b-4b08-b2da-50e8cbff4d1e
+    appIdUri: '$(CS_OIDC_APP_ID_URI)'               # e.g. api://mydomain/myapp
+    # Cloudsmith targeting
+    oidcNamespace: '$(CS_ORG)'
+    oidcServiceSlug: '$(CS_SERVICE_SLUG)'
+    cliVersion: 'latest'
 
 - task: UsePythonVersion@0
   displayName: "Use Python $(python.version)"
@@ -22,18 +42,17 @@ steps:
     versionSpec: '$(python.version)'
     addToPath: true
 
+# 2) Install deps from Cloudsmith (Basic auth with service slug + OIDC-issued token)
 - bash: |
     set -euo pipefail
     python -m pip install --upgrade pip
     pip install -r requirements.txt \
-      --index-url "https://${CS_SERVICE}:${CS_API_KEY}@dl.cloudsmith.io/basic/globex-innovations/acme-nonprod/python/simple/"
+      --index-url "https://$(CS_SERVICE_SLUG):${CLOUDSMITH_API_KEY}@dl.cloudsmith.io/basic/$(CS_ORG)/$(CS_REPO)/python/simple/"
   displayName: "Install dependencies"
-  env:
-    CS_API_KEY: $(CS_API_KEY)
-    CS_SERVICE: $(CS_SERVICE)
 
 - bash: |
     set -euo pipefail
     pip install pytest pytest-azurepipelines
     pytest
   displayName: "Run tests"
+
