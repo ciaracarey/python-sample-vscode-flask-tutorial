@@ -2,38 +2,41 @@
 trigger: [main]
 pr: [main]
 
-pool:
-  vmImage: ubuntu-latest
+jobs:
+- job: tests
+  pool:
+    vmImage: ubuntu-latest
 
-strategy:
-  matrix:
-    Py310:
-      python.version: '3.10'
-    Py312:
-      python.version: '3.12'
-  maxParallel: 1
+  strategy:
+    matrix:
+      Py310:
+        python_version: '3.10'
+      Py312:
+        python_version: '3.12'
+    maxParallel: 1
 
-steps:
-- checkout: self
+  steps:
+  - checkout: self
 
-- task: UsePythonVersion@0
-  displayName: "Use Python $(python.version)"
-  inputs:
-    versionSpec: '$(python.version)'
-    addToPath: true
+  - task: UsePythonVersion@0
+    displayName: "Use Python $(python_version)"
+    inputs:
+      versionSpec: '$(python_version)'
+      addToPath: true
 
-- bash: |
-    set -euo pipefail
-    python -m pip install --upgrade pip
-    pip install -r requirements.txt \
-      --index-url "https://${CS_SERVICE}:${CS_API_KEY}@dl.cloudsmith.io/basic/globex-innovations/acme-nonprod/python/simple/"
-  displayName: "Install dependencies"
-  env:
-    CS_API_KEY: $(CS_API_KEY)
-    CS_SERVICE: $(CS_SERVICE)
+  - bash: |
+      set -euo pipefail
+      python -m pip install --upgrade pip
+      # If your API key contains special characters, URL-encode it first.
+      pip install -r requirements.txt \
+        --index-url "https://${CS_SERVICE}:${CS_API_KEY}@dl.cloudsmith.io/basic/globex-innovations/acme-nonprod/python/simple/"
+    displayName: "Install dependencies"
+    env:
+      CS_API_KEY: $(CS_API_KEY)   # secret (user API key or entitlement token)
+      CS_SERVICE: $(CS_SERVICE)   # service account slug
 
-- bash: |
-    set -euo pipefail
-    pip install pytest pytest-azurepipelines
-    pytest
-  displayName: "Run tests"
+  - bash: |
+      set -euo pipefail
+      pip install pytest pytest-azurepipelines
+      pytest
+    displayName: "Run tests"
