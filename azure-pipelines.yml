@@ -21,7 +21,7 @@ variables:
 steps:
 - checkout: self
 
-- task: CloudsmithCliSetupAndAuthenticate@0
+- task: CloudsmithCliSetupAndAuthenticate@1
   displayName: "Cloudsmith: CLI setup + OIDC auth"
   inputs:
     authMethod: 'oidc'
