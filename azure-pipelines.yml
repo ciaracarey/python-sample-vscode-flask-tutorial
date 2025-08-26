@@ -2,41 +2,53 @@
 trigger: [main]
 pr: [main]
 
-jobs:
-- job: tests
-  pool:
-    vmImage: ubuntu-latest
+pool:
+  vmImage: ubuntu-latest
 
-  strategy:
-    matrix:
-      Py310:
-        python_version: '3.10'
-      Py312:
-        python_version: '3.12'
-    maxParallel: 1
+strategy:
+  matrix:
+    Py310:
+      python.version: '3.10'
+    Py312:
+      python.version: '3.12'
+  maxParallel: 1
 
-  steps:
-  - checkout: self
+variables:
+  CS_ORG: 'globex-innovations'
+  CS_REPO: 'acme-nonprod'
+  CS_SERVICE_SLUG: 'ci_acme_service'   # Cloudsmith service account slug
 
-  - task: UsePythonVersion@0
-    displayName: "Use Python $(python_version)"
-    inputs:
-      versionSpec: '$(python_version)'
-      addToPath: true
+steps:
+- checkout: self
 
-  - bash: |
-      set -euo pipefail
-      python -m pip install --upgrade pip
-      # If your API key contains special characters, URL-encode it first.
-      pip install -r requirements.txt \
-        --index-url "https://${CS_SERVICE}:${CS_API_KEY}@dl.cloudsmith.io/basic/globex-innovations/acme-nonprod/python/simple/"
-    displayName: "Install dependencies"
-    env:
-      CS_API_KEY: $(CS_API_KEY)   # secret (user API key or entitlement token)
-      CS_SERVICE: $(CS_SERVICE)   # service account slug
+- task: CloudsmithCliSetupAndAuthenticate@1
+  displayName: "Cloudsmith: CLI setup + OIDC auth"
+  inputs:
+    authMethod: 'oidc'
+    clientId: 'dcebb3ca-fed4-4a19-aa94-4a12e4ba1e08'
+    clientSecret: '$(CS_OIDC_CLIENT_SECRET)'    # keep this in ADO secrets
+    tenantId: '11992f3a-0562-4983-8a40-a4644650b218'
+    appIdUri: 'api://dcebb3ca-fed4-4a19-aa94-4a12e4ba1e08'   # <- no "/.default"
+    oidcNamespace: 'globex-innovations'
+    oidcServiceSlug: 'ci_acme_service'
+    cliVersion: 'latest'
+    
+- task: UsePythonVersion@0
+  displayName: "Use Python $(python.version)"
+  inputs:
+    versionSpec: '$(python.version)'
+    addToPath: true
 
-  - bash: |
-      set -euo pipefail
-      pip install pytest pytest-azurepipelines
-      pytest
-    displayName: "Run tests"
+# 2) Install deps from Cloudsmith (Basic auth with service slug + OIDC-issued token)
+- bash: |
+    set -euo pipefail
+    python -m pip install --upgrade pip
+    pip install -r requirements.txt \
+      --index-url "https://$(CS_SERVICE_SLUG):${CLOUDSMITH_API_KEY}@dl.cloudsmith.io/basic/$(CS_ORG)/$(CS_REPO)/python/simple/"
+  displayName: "Install dependencies"
+
+- bash: |
+    set -euo pipefail
+    pip install pytest pytest-azurepipelines
+    pytest
+  displayName: "Run tests"
