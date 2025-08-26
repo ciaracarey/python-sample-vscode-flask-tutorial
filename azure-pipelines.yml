@@ -21,21 +21,18 @@ variables:
 steps:
 - checkout: self
 
-# 1) Authenticate to Cloudsmith via OIDC
 - task: CloudsmithCliSetupAndAuthenticate@0
   displayName: "Cloudsmith: CLI setup + OIDC auth"
   inputs:
     authMethod: 'oidc'
-    # Entra app values (store as secret variables in ADO Library/Variables)
-    clientId: '$(CS_OIDC_CLIENT_ID)'
-    clientSecret: '$(CS_OIDC_CLIENT_SECRET)'
-    tenantId: '$(CS_OIDC_TENANT_ID)'                # e.g. 1e93d1ef-4a1b-4b08-b2da-50e8cbff4d1e
-    appIdUri: '$(CS_OIDC_APP_ID_URI)'               # e.g. api://mydomain/myapp
-    # Cloudsmith targeting
-    oidcNamespace: '$(CS_ORG)'
-    oidcServiceSlug: '$(CS_SERVICE_SLUG)'
+    clientId: 'dcebb3ca-fed4-4a19-aa94-4a12e4ba1e08'
+    clientSecret: '$(CS_OIDC_CLIENT_SECRET)'    # keep this in ADO secrets
+    tenantId: '11992f3a-0562-4983-8a40-a4644650b218'
+    appIdUri: 'api://dcebb3ca-fed4-4a19-aa94-4a12e4ba1e08'   # <- no "/.default"
+    oidcNamespace: 'globex-innovations'
+    oidcServiceSlug: 'ci_acme_service'
     cliVersion: 'latest'
-
+    
 - task: UsePythonVersion@0
   displayName: "Use Python $(python.version)"
   inputs:
