@@ -10,9 +10,12 @@ permissions:
   id-token: write               # needed for Cloudsmith OIDC
 
 env:
-  CS_ORG:   globex-innovations
-  CS_REPO:  acme-nonprod
-  SERVICE:  ci_acme_service      # Cloudsmith service-account
+  #CS_ORG:   globex-innovations
+  #CS_REPO:  acme-nonprod
+  #SERVICE:  ci_acme_service      # Cloudsmith service-account
+  CS_ORG:   dmk-software-solutions
+  CS_REPO:  examples-repo
+  SERVICE:  gh-actions      # Cloudsmith service-account
 
 jobs:
   build:
@@ -39,5 +42,6 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install flake8 pytest --index-url $PIP_INDEX_URL
+        #pip install flake8 pytest --index-url $PIP_INDEX_URL
+        pip install --index-url $PIP_INDEX_URL
         if [ -f requirements.txt ]; then pip install -r requirements.txt --index-url $PIP_INDEX_URL; fi
