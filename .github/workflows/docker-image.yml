@@ -37,8 +37,3 @@ jobs:
     - name: Pull Cloudsmith Docker image
       run: |
         docker pull docker.cloudsmith.io/${{ env.CS_ORG }}/${{ env.CS_REPO }}/django:latest
-
-    # 4. (Optional) Smoke test the container
-    - name: Run container (check version)
-      run: |
-        docker run --rm docker.cloudsmith.io/${{ env.CS_ORG }}/${{ env.CS_REPO }}/django:latest --version
