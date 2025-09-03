@@ -14,7 +14,7 @@ env:
   #CS_REPO:  acme-nonprod
   #SERVICE:  ci_acme_service      # Cloudsmith service-account
   CS_ORG:   dmk-software-solutions
-  CS_REPO:  examples-repo
+  CS_REPO:  acme-nonprod
   SERVICE:  gh-actions      # Cloudsmith service-account
 
 jobs:
@@ -42,5 +42,5 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        #pip install flake8 pytest --index-url $PIP_INDEX_URL
+        pip install flake8 pytest --index-url $PIP_INDEX_URL
         if [ -f requirements.txt ]; then pip install -r requirements.txt --index-url $PIP_INDEX_URL; fi
