@@ -10,13 +10,10 @@ permissions:
   id-token: write               # needed for Cloudsmith OIDC
 
 env:
-  #CS_ORG:   globex-innovations
-  #CS_REPO:  acme-nonprod
-  #SERVICE:  ci_acme_service      # Cloudsmith service-account
-  CS_ORG:   dmk-software-solutions
+  CS_ORG:   globex-innovations
   CS_REPO:  acme-nonprod
-  SERVICE:  gh-actions      # Cloudsmith service-account
-
+  SERVICE:  ci_acme_service      # Cloudsmith service-account
+  
 jobs:
   build:
     runs-on: ubuntu-latest
