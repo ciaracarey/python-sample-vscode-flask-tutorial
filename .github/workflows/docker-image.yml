@@ -1,0 +1,44 @@
+name: Docker Pull (Cloudsmith via OIDC)
+
+on:
+  workflow_dispatch:
+
+permissions:
+  id-token: write     # required for Cloudsmith OIDC
+  contents: read
+
+env:
+  CS_ORG:   globex-innovations
+  CS_REPO:  acme-nonprod
+  SERVICE:  ci_acme_service  # Cloudsmith service account slug
+
+jobs:
+  docker-pull:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    # 1. OIDC login – sets $CLOUDSMITH_API_KEY (short-lived)
+    - name: Cloudsmith OIDC login
+      uses: cloudsmith-io/cloudsmith-cli-action@v1.0.2
+      with:
+        oidc-namespace:    ${{ env.CS_ORG }}
+        oidc-service-slug: ${{ env.SERVICE }}
+        oidc-auth-only:    "true"
+
+    # 2. Docker login with ephemeral token
+    - name: Docker login (Cloudsmith)
+      run: |
+        echo "$CLOUDSMITH_API_KEY" | \
+          docker login docker.cloudsmith.io -u token --password-stdin
+
+    # 3. Pull your image
+    - name: Pull Cloudsmith Docker image
+      run: |
+        docker pull docker.cloudsmith.io/${{ env.CS_ORG }}/${{ env.CS_REPO }}/django:latest
+
+    # 4. (Optional) Smoke test the container
+    - name: Run container (check version)
+      run: |
+        docker run --rm docker.cloudsmith.io/${{ env.CS_ORG }}/${{ env.CS_REPO }}/django:latest --version
