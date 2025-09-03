@@ -36,4 +36,4 @@ jobs:
     # 3. Pull your image
     - name: Pull Cloudsmith Docker image
       run: |
-        docker pull docker.cloudsmith.io/${{ env.CS_ORG }}/${{ env.CS_REPO }}/django:latest
+        docker pull docker.cloudsmith.io/${{ env.CS_ORG }}/${{ env.CS_REPO }}/alpine:latest
