@@ -1,2 +1,2 @@
-Requests==2.6.0
+Requests==2.6.1
 numpy
