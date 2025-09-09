@@ -8,7 +8,7 @@ permissions:
   contents: read
 
 env:
-  CS_ORG:   globex-innovations
+  CS_WORKSPACE:   globex-innovations
   CS_REPO:  examples-repo
   SERVICE:  ci_acme_service  # Cloudsmith service account slug
 
@@ -23,7 +23,7 @@ jobs:
     - name: Cloudsmith OIDC login
       uses: cloudsmith-io/cloudsmith-cli-action@v1.0.2
       with:
-        oidc-namespace:    ${{ env.CS_ORG }}
+        oidc-namespace:    ${{ env.CS_WORKSPACE }}
         oidc-service-slug: ${{ env.SERVICE }}
         oidc-auth-only:    "true"
 
@@ -36,4 +36,4 @@ jobs:
     # 3. Pull your image
     - name: Pull Cloudsmith Docker image
       run: |
-        docker pull docker.cloudsmith.io/${{ env.CS_ORG }}/${{ env.CS_REPO }}/alpine:latest
+        docker pull docker.cloudsmith.io/${{ env.CS_WORKSPACE }}/${{ env.CS_REPO }}/alpine:latest
