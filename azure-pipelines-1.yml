@@ -1,0 +1,14 @@
+trigger: none
+
+pool:
+  vmImage: ubuntu-latest
+
+steps:
+- bash: |
+    echo "Requesting OIDC JWT from Azure DevOps..."
+    token=$(curl -s "$(System.OidcRequestUri)?api-version=7.1" \
+      -H "Authorization: Bearer $(System.AccessToken)" | jq -r '.token')
+
+    echo "Issuer (iss) claim (your Provider URL for Cloudsmith):"
+    echo "$token" | cut -d '.' -f2 | base64 -d 2>/dev/null | jq -r .iss
+  displayName: "Print OIDC issuer"
