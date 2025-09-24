@@ -48,13 +48,23 @@ steps:
     echo "##vso[task.setvariable variable=CLOUDSMITH_API_KEY;issecret=true]$CSM_TOKEN"
   displayName: "Mint Cloudsmith token via ADO OIDC"
 
+# Install Cloudsmith CLI (zipapp) and run whoami
 - bash: |
     set -euo pipefail
-    # Make sure the token is available to the CLI
+    install_dir="$HOME/.local/bin"
+    mkdir -p "$install_dir"
+    curl -sSL \
+      'https://dl.cloudsmith.io/public/cloudsmith/cli-zipapp/raw/names/cloudsmith-cli/versions/latest/cloudsmith.pyz' \
+      -o "$install_dir/cloudsmith"
+    chmod +x "$install_dir/cloudsmith"
+    echo "##vso[task.prependpath]$install_dir"
+
+    # Use the OIDC-exchanged token from the previous step
     export CLOUDSMITH_API_KEY="$(CLOUDSMITH_API_KEY)"
+
     cloudsmith --version
     cloudsmith whoami
-  displayName: "Cloudsmith CLI: whoami"
+  displayName: "Install Cloudsmith CLI + whoami"
 
 - task: UsePythonVersion@0
   inputs: { versionSpec: '3.12' }
