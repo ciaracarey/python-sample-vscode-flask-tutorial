@@ -1,54 +1,70 @@
 # azure-pipelines.yml
-trigger: [main]
-pr: [main]
+trigger:
+- main
 
 pool:
   vmImage: ubuntu-latest
-
-strategy:
-  matrix: 
-    Py310:
-      python.version: '3.10'
-    Py312:
-      python.version: '3.12'
-  maxParallel: 1
 
 variables:
   CS_ORG: 'globex-innovations'
   CS_REPO: 'acme-nonprod'
   CS_SERVICE_SLUG: 'ci_acme_service'   # Cloudsmith service account slug
+  CS_PROVIDER_URL: 'https://vstoken.dev.azure.com/BotConsulting/'  # Issuer you configured in Cloudsmith
 
 steps:
 - checkout: self
 
-- task: CloudsmithCliSetupAndAuthenticate@1
-  displayName: "Cloudsmith: CLI setup + OIDC auth"
-  inputs:
-    authMethod: 'oidc'
-    clientId: 'dcebb3ca-fed4-4a19-aa94-4a12e4ba1e08'
-    clientSecret: '$(CS_OIDC_CLIENT_SECRET)'    # keep this in ADO secrets
-    tenantId: '11992f3a-0562-4983-8a40-a4644650b218'
-    appIdUri: 'api://dcebb3ca-fed4-4a19-aa94-4a12e4ba1e08'   # <- no "/.default"
-    oidcNamespace: 'globex-innovations'
-    oidcServiceSlug: 'ci_acme_service'
-    cliVersion: 'latest'
-    
-- task: UsePythonVersion@0
-  displayName: "Use Python $(python.version)"
-  inputs:
-    versionSpec: '$(python.version)'
-    addToPath: true
+# (Optional) Show the ADO OIDC provider URL you can call
+- bash: |
+    echo "System OIDC Provider URL:"
+    echo "$(System.OidcRequestUri)"
+    echo
+    echo "With API version + audience=cloudsmith:"
+    echo "$(System.OidcRequestUri)?api-version=7.1&audience=cloudsmith"
+  displayName: "Print OIDC provider URL (info)"
 
-# 2) Install deps from Cloudsmith (Basic auth with service slug + OIDC-issued token)
+# Mint ADO OIDC -> exchange for Cloudsmith token
+- bash: |
+    set -euo pipefail
+
+    # 1) Mint ADO OIDC token (IMPORTANT: set audience=cloudsmith)
+    OIDC_TOKEN=$(curl -s -X POST \
+      -H "Authorization: Bearer $(System.AccessToken)" \
+      -H "Content-Length: 0" \
+      "$(System.OidcRequestUri)?api-version=7.1&audience=cloudsmith" \
+      | jq -r '.oidcToken')
+
+    if [ -z "$OIDC_TOKEN" ] || [ "$OIDC_TOKEN" = "null" ]; then
+      echo "Failed to mint ADO OIDC token"; exit 1
+    fi
+
+    # (Optional) Inspect key claims (non-secret): iss, aud, sub
+    echo "$OIDC_TOKEN" | awk -F. '{print $2}' | base64 -d 2>/dev/null | jq '{iss,aud,sub}'
+
+    # 2) Exchange for Cloudsmith token using your org + service account
+    CSM_TOKEN=$(curl -s -X POST \
+      -H "Content-Type: application/json" \
+      -d "{\"oidc_token\":\"$OIDC_TOKEN\",\"service_slug\":\"$(CS_SERVICE_SLUG)\"}" \
+      "https://api.cloudsmith.io/openid/$(CS_ORG)/" \
+      | jq -r '.token')
+
+    if [ -z "$CSM_TOKEN" ] || [ "$CSM_TOKEN" = "null" ]; then
+      echo "Failed to obtain Cloudsmith token"; exit 1
+    fi
+
+    # 3) Export for later steps
+    echo "##vso[task.setvariable variable=CLOUDSMITH_API_KEY;issecret=true]$CSM_TOKEN"
+  displayName: "Mint Cloudsmith token via ADO OIDC"
+
+# Python example: install from Cloudsmith (Basic auth = <service-slug>:<token>)
+- task: UsePythonVersion@0
+  inputs:
+    versionSpec: '3.12'
+  displayName: "Use Python 3.12"
+
 - bash: |
     set -euo pipefail
     python -m pip install --upgrade pip
     pip install -r requirements.txt \
-      --index-url "https://$(CS_SERVICE_SLUG):${CLOUDSMITH_API_KEY}@dl.cloudsmith.io/basic/$(CS_ORG)/$(CS_REPO)/python/simple/"
-  displayName: "Install dependencies"
-
-- bash: |
-    set -euo pipefail
-    pip install pytest pytest-azurepipelines
-    pytest
-  displayName: "Run tests"
+      --index-url "https://$(CS_SERVICE_SLUG):$(CLOUDSMITH_API_KEY)@dl.cloudsmith.io/basic/$(CS_ORG)/$(CS_REPO)/python/simple/"
+  displayName: "pip install from Cloudsmith"
