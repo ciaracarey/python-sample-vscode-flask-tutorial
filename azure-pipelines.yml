@@ -47,3 +47,22 @@ steps:
 
     echo "##vso[task.setvariable variable=CLOUDSMITH_API_KEY;issecret=true]$CSM_TOKEN"
   displayName: "Mint Cloudsmith token via ADO OIDC"
+
+- bash: |
+    set -euo pipefail
+    # Make sure the token is available to the CLI
+    export CLOUDSMITH_API_KEY="$(CLOUDSMITH_API_KEY)"
+    cloudsmith --version
+    cloudsmith whoami
+  displayName: "Cloudsmith CLI: whoami"
+
+- task: UsePythonVersion@0
+  inputs: { versionSpec: '3.12' }
+  displayName: "Use Python 3.12"
+
+- bash: |
+    set -euo pipefail
+    python -m pip install --upgrade pip
+    pip install -r requirements.txt \
+      --index-url "https://$(CS_SERVICE_SLUG):$(CLOUDSMITH_API_KEY)@dl.cloudsmith.io/basic/$(CS_ORG)/$(CS_REPO)/python/simple/"
+  displayName: "pip install from Cloudsmith"
