@@ -25,6 +25,24 @@ steps:
 
 - bash: |
     set -euo pipefail
+    # Mint a token directly from ADO
+    OIDC_TOKEN=$(curl -s -X POST \
+      -H "Authorization: Bearer $(System.AccessToken)" \
+      -H "Content-Length: 0" \
+      "$(System.OidcRequestUri)?api-version=7.1&audience=cloudsmith" \
+      | jq -r '.oidcToken')
+
+    echo "Token length: ${#OIDC_TOKEN}"
+
+    echo "--- Header ---"
+    echo "$OIDC_TOKEN" | cut -d '.' -f1 | base64 -d 2>/dev/null | jq .
+
+    echo "--- Claims ---"
+    echo "$OIDC_TOKEN" | cut -d '.' -f2 | base64 -d 2>/dev/null | jq .
+  displayName: "Show OIDC token claims"
+
+- bash: |
+    set -euo pipefail
 
     OIDC_TOKEN=$(curl -s -X POST \
       -H "Authorization: Bearer $(System.AccessToken)" \
