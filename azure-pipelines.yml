@@ -8,13 +8,14 @@ pool:
 variables:
   CS_ORG: 'globex-innovations'
   CS_REPO: 'acme-nonprod'
-  CS_SERVICE_SLUG: 'ci_acme_service'   # Cloudsmith service account slug
-  CS_PROVIDER_URL: 'https://vstoken.dev.azure.com/BotConsulting/'  # Issuer you configured in Cloudsmith
+  CS_SERVICE_SLUG: 'ci_acme_service'
+  # Set to 'true' only when you want to copy/paste the whole JWT to jwt.io
+  PRINT_FULL_JWT: 'false'
 
 steps:
 - checkout: self
 
-# (Optional) Show the ADO OIDC provider URL you can call
+# Show the ADO OIDC provider URL (handy for debugging)
 - bash: |
     echo "System OIDC Provider URL:"
     echo "$(System.OidcRequestUri)"
@@ -23,50 +24,69 @@ steps:
     echo "$(System.OidcRequestUri)?api-version=7.1&audience=cloudsmith"
   displayName: "Print OIDC provider URL (info)"
 
-- bash: |
-    set -euo pipefail
-    # Mint a token directly from ADO
-    OIDC_TOKEN=$(curl -s -X POST \
-      -H "Authorization: Bearer $(System.AccessToken)" \
-      -H "Content-Length: 0" \
-      "$(System.OidcRequestUri)?api-version=7.1&audience=cloudsmith" \
-      | jq -r '.oidcToken')
-
-    echo "Token length: ${#OIDC_TOKEN}"
-
-    echo "--- Header ---"
-    echo "$OIDC_TOKEN" | cut -d '.' -f1 | base64 -d 2>/dev/null | jq .
-
-    echo "--- Claims ---"
-    echo "$OIDC_TOKEN" | cut -d '.' -f2 | base64 -d 2>/dev/null | jq .
-  displayName: "Show OIDC token claims"
-
+# Mint OIDC token ONCE, print header/claims, optionally print full JWT, then exchange for Cloudsmith token
 - bash: |
     set -euo pipefail
 
+    # 1) Mint the ADO OIDC token (audience is arbitrary; use something you may also match on)
+    AUDIENCE="cloudsmith"
     OIDC_TOKEN=$(curl -s -X POST \
       -H "Authorization: Bearer $(System.AccessToken)" \
       -H "Content-Length: 0" \
-      "$(System.OidcRequestUri)?api-version=7.1&audience=cloudsmith" \
+      "$(System.OidcRequestUri)?api-version=7.1&audience=${AUDIENCE}" \
       | jq -r '.oidcToken')
 
-    [ -n "$OIDC_TOKEN" ] && [ "$OIDC_TOKEN" != "null" ] || { echo "Failed to mint ADO OIDC token"; exit 1; }
+    if [ -z "$OIDC_TOKEN" ] || [ "$OIDC_TOKEN" = "null" ]; then
+      echo "Failed to mint ADO OIDC token"; exit 1
+    fi
 
-    # (Optional) Inspect, but don't fail the step if decode complains about padding
-    echo "$OIDC_TOKEN" | awk -F. '{print $2}' | base64 -d 2>/dev/null | jq '{iss,aud,sub}' || true
+    echo "OIDC token length: ${#OIDC_TOKEN}"
 
+    # 2) Decode/print JWT header + claims (payload). These are safe to print.
+    # Base64url -> base64 conversion and padding fix, then jq
+    decode_part () {
+      PART=$1
+      # Replace url-safe chars, add padding if needed
+      PAD=$(( (4 - (${#PART} % 4)) % 4 ))
+      printf '%s' "$PART" | tr '_-' '/+' | sed -e "s/$/$(printf '=%.0s' $(seq 1 $PAD))/" | base64 -d 2>/dev/null
+    }
+
+    IFS='.' read -r JWT_HEADER JWT_PAYLOAD JWT_SIG <<< "$OIDC_TOKEN"
+
+    echo "--- JWT Header ---"
+    decode_part "$JWT_HEADER" | jq .
+
+    echo "--- JWT Claims (Payload) ---"
+    decode_part "$JWT_PAYLOAD" | jq .
+
+    # 3) (Optional) Print the FULL JWT for jwt.io (guarded by PRINT_FULL_JWT)
+    if [ "${PRINT_FULL_JWT}" = "true" ]; then
+      echo ""
+      echo "===== COPY BELOW INTO https://jwt.io/ (entire token) ====="
+      echo "$OIDC_TOKEN"
+      echo "===== END TOKEN ====="
+      echo ""
+    else
+      echo "Full JWT not printed (PRINT_FULL_JWT=false)."
+      echo "Set variable PRINT_FULL_JWT=true to print it for jwt.io."
+    fi
+
+    # 4) Exchange the OIDC token for a Cloudsmith token
     CSM_TOKEN=$(curl -s -X POST \
       -H "Content-Type: application/json" \
       -d "{\"oidc_token\":\"$OIDC_TOKEN\",\"service_slug\":\"$(CS_SERVICE_SLUG)\"}" \
       "https://api.cloudsmith.io/openid/$(CS_ORG)/" \
       | jq -r '.token')
 
-    [ -n "$CSM_TOKEN" ] && [ "$CSM_TOKEN" != "null" ] || { echo "Failed to obtain Cloudsmith token"; exit 1; }
+    if [ -z "$CSM_TOKEN" ] || [ "$CSM_TOKEN" = "null" ]; then
+      echo "Failed to obtain Cloudsmith token"; exit 1
+    fi
 
+    # 5) Export the Cloudsmith token for later steps
     echo "##vso[task.setvariable variable=CLOUDSMITH_API_KEY;issecret=true]$CSM_TOKEN"
-  displayName: "Mint Cloudsmith token via ADO OIDC"
+  displayName: "Mint OIDC, show claims, and exchange for Cloudsmith token"
 
-# Install Cloudsmith CLI (zipapp) and run whoami
+# Example: Install Cloudsmith CLI and verify identity
 - bash: |
     set -euo pipefail
     install_dir="$HOME/.local/bin"
@@ -77,13 +97,12 @@ steps:
     chmod +x "$install_dir/cloudsmith"
     echo "##vso[task.prependpath]$install_dir"
 
-    # Use the OIDC-exchanged token from the previous step
     export CLOUDSMITH_API_KEY="$(CLOUDSMITH_API_KEY)"
-
     cloudsmith --version
     cloudsmith whoami
   displayName: "Install Cloudsmith CLI + whoami"
 
+# Example: use the token for pip install
 - task: UsePythonVersion@0
   inputs: { versionSpec: '3.12' }
   displayName: "Use Python 3.12"
