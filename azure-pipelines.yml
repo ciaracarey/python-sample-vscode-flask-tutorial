@@ -7,16 +7,9 @@ pool:
 
 variables:
   # ---- Cloudsmith settings ----
-  CS_WORKSPACE: 'globex-innovations'   # was CS_ORG
+  CS_WORKSPACE: 'globex-innovations'   
   CS_REPO: 'acme-nonprod'
   CS_SERVICE_SLUG: 'ci_acme_service'   # service account slug (username for Basic Auth)
-
-  # ---- npm scope (change to your real scope, e.g., @acme) ----
-  NPM_SCOPE: '@your-scope'
-  # Optional: a single package to fetch explicitly after npm ci
-  NPM_SINGLE_PACKAGE: '@your-scope/some-package@latest'
-
-# Define CLOUDSMITH_API_KEY as a SECRET variable in the pipeline UI/Library (do NOT hardcode)
 
 steps:
 - checkout: self
