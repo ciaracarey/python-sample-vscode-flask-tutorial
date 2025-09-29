@@ -7,30 +7,13 @@ pool:
 variables:
   CS_ORG: 'globex-innovations'
   CS_REPO: 'acme-nonprod'
-  CS_SERVICE_SLUG: 'ci_acme_service'   # service account slug (username for Basic Auth)
-
-# Define CLOUDSMITH_API_KEY as a SECRET variable in the pipeline UI/Library, not here.
+  CS_SERVICE_SLUG: 'ci_acme_service'   # username for Basic Auth if needed elsewhere
+  # CLOUDSMITH_API_KEY is a SECRET pipeline variable
 
 steps:
 - checkout: self
 
-# Install Cloudsmith CLI and verify identity (uses API key)
-- bash: |
-    set -euo pipefail
-    install_dir="$HOME/.local/bin"
-    mkdir -p "$install_dir"
-    curl -sSL \
-      'https://dl.cloudsmith.io/public/cloudsmith/cli-zipapp/raw/names/cloudsmith-cli/versions/latest/cloudsmith.pyz' \
-      -o "$install_dir/cloudsmith"
-    chmod +x "$install_dir/cloudsmith"
-    echo "##vso[task.prependpath]$install_dir"
-
-    export CLOUDSMITH_API_KEY="$(CLOUDSMITH_API_KEY)"
-    cloudsmith --version
-    cloudsmith whoami
-  displayName: "Install Cloudsmith CLI + whoami"
-
-# Example: use API key for pip install (Basic Auth in URL)
+# ===== Python (unchanged) =====
 - task: UsePythonVersion@0
   inputs: { versionSpec: '3.12' }
   displayName: "Use Python 3.12"
@@ -38,14 +21,39 @@ steps:
 - bash: |
     set -euo pipefail
     python -m pip install --upgrade pip
-    # Azure masks secret values in logs. Avoid -v to reduce log noise.
     pip install -r requirements.txt \
-      --index-url "https://$(CS_SERVICE_SLUG):$(CLOUDSMITH_API_KEY)@dl.cloudsmith.io/basic/$(CS_ORG)/$(CS_REPO)/python/simple/"
+      --index-url "https://${CS_SERVICE_SLUG}:${CLOUDSMITH_API_KEY}@dl.cloudsmith.io/basic/${CS_ORG}/${CS_REPO}/python/simple/"
   displayName: "pip install from Cloudsmith"
 
-# (Optional) Docker example with API key
+# ===== Node.js / npm from Cloudsmith =====
+- task: NodeTool@0
+  inputs:
+    versionSpec: '20.x'
+  displayName: "Use Node.js 20"
+
+# If your packages are SCOPED (recommended): set registry for that scope only
+- bash: |
+    set -euo pipefail
+    SCOPE="@your-scope"  # e.g. @acme
+    npm config set ${SCOPE}:registry https://npm.cloudsmith.io/${CS_ORG}/${CS_REPO}/
+    npm config set //npm.cloudsmith.io/${CS_ORG}/${CS_REPO}/:_authToken=${CLOUDSMITH_API_KEY}
+    npm config set always-auth true
+
+    # Install from package.json
+    npm ci
+
+    # Example: fetch a single package explicitly (optional)
+    npm install ${SCOPE}/some-package@latest
+  displayName: "npm install from Cloudsmith (scoped)"
+
+# If your packages are UNSCOPED, use this block instead of the one above:
 # - bash: |
 #     set -euo pipefail
-#     echo "$(CLOUDSMITH_API_KEY)" | docker login -u "$(CS_SERVICE_SLUG)" --password-stdin "docker.cloudsmith.io"
-#     docker pull docker.cloudsmith.io/$(CS_ORG)/$(CS_REPO)/alpine:latest
-#   displayName: "Docker login + pull from Cloudsmith"
+#     npm config set registry https://npm.cloudsmith.io/${CS_ORG}/${CS_REPO}/
+#     npm config set //npm.cloudsmith.io/${CS_ORG}/${CS_REPO}/:_authToken=${CLOUDSMITH_API_KEY}
+#     npm config set always-auth true
+#     npm ci
+#     # Example: fetch a single package explicitly (optional)
+#     npm install some-unscoped-package@latest
+#   displayName: "npm install from Cloudsmith (unscoped)"
+
