@@ -39,7 +39,6 @@ steps:
     CS_SERVICE_SLUG: $(CS_SERVICE_SLUG)
     CLOUDSMITH_API_KEY: $(CLOUDSMITH_API_KEY)   # secret
 
-# ===== Node.js / npm: install deps from Cloudsmith (scoped) =====
 - task: NodeTool@0
   inputs:
     versionSpec: '20.x'
@@ -47,26 +46,26 @@ steps:
 
 - bash: |
     set -eo pipefail
+    npm --version
 
-    # Point the scope to your Cloudsmith npm registry and set auth token
+    # Configure scoped registry + auth token
     npm config set ${NPM_SCOPE}:registry "https://npm.cloudsmith.io/${CS_WORKSPACE}/${CS_REPO}/"
     npm config set //npm.cloudsmith.io/${CS_WORKSPACE}/${CS_REPO}/:_authToken="${CLOUDSMITH_API_KEY}"
-    npm config set always-auth true
 
-    # Install project dependencies per package-lock.json
+    # Install project deps from package-lock.json
     npm ci
 
-    # Optionally fetch a single package explicitly (safe to leave if package exists; otherwise comment out)
+    # (Optional) fetch one explicit package from your registry to verify connectivity
     if [ -n "${NPM_SINGLE_PACKAGE}" ]; then
       npm install "${NPM_SINGLE_PACKAGE}"
     fi
 
-    # Optional: vulnerability audit (works with API key)
+    # Optional: audit (works with API key)
     npm audit || true
-  displayName: "npm install from Cloudsmith (scoped + single package)"
+  displayName: "npm install from Cloudsmith (scoped)"
   env:
     CS_WORKSPACE: $(CS_WORKSPACE)
     CS_REPO: $(CS_REPO)
-    CLOUDSMITH_API_KEY: $(CLOUDSMITH_API_KEY)   # secret
+    CLOUDSMITH_API_KEY: $(CLOUDSMITH_API_KEY)
     NPM_SCOPE: $(NPM_SCOPE)
     NPM_SINGLE_PACKAGE: $(NPM_SINGLE_PACKAGE)
