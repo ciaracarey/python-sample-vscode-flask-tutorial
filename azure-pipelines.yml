@@ -1,3 +1,4 @@
+# azure-pipelines.yml
 trigger:
 - main
 
@@ -5,55 +6,67 @@ pool:
   vmImage: ubuntu-latest
 
 variables:
-  CS_ORG: 'globex-innovations'
+  # ---- Cloudsmith settings ----
+  CS_WORKSPACE: 'globex-innovations'   # was CS_ORG
   CS_REPO: 'acme-nonprod'
-  CS_SERVICE_SLUG: 'ci_acme_service'   # username for Basic Auth if needed elsewhere
-  # CLOUDSMITH_API_KEY is a SECRET pipeline variable
+  CS_SERVICE_SLUG: 'ci_acme_service'   # service account slug (username for Basic Auth)
+
+  # ---- npm scope (change to your real scope, e.g., @acme) ----
+  NPM_SCOPE: '@your-scope'
+  # Optional: a single package to fetch explicitly after npm ci
+  NPM_SINGLE_PACKAGE: '@your-scope/some-package@latest'
+
+# Define CLOUDSMITH_API_KEY as a SECRET variable in the pipeline UI/Library (do NOT hardcode)
 
 steps:
 - checkout: self
 
-# ===== Python (unchanged) =====
+# ===== Python: install deps from Cloudsmith =====
 - task: UsePythonVersion@0
-  inputs: { versionSpec: '3.12' }
+  inputs:
+    versionSpec: '3.12'
   displayName: "Use Python 3.12"
 
 - bash: |
-    set -euo pipefail
+    set -eo pipefail
     python -m pip install --upgrade pip
     pip install -r requirements.txt \
-      --index-url "https://${CS_SERVICE_SLUG}:${CLOUDSMITH_API_KEY}@dl.cloudsmith.io/basic/${CS_ORG}/${CS_REPO}/python/simple/"
+      --index-url "https://${CS_SERVICE_SLUG}:${CLOUDSMITH_API_KEY}@dl.cloudsmith.io/basic/${CS_WORKSPACE}/${CS_REPO}/python/simple/"
   displayName: "pip install from Cloudsmith"
+  env:
+    CS_WORKSPACE: $(CS_WORKSPACE)
+    CS_REPO: $(CS_REPO)
+    CS_SERVICE_SLUG: $(CS_SERVICE_SLUG)
+    CLOUDSMITH_API_KEY: $(CLOUDSMITH_API_KEY)   # secret
 
-# ===== Node.js / npm from Cloudsmith =====
+# ===== Node.js / npm: install deps from Cloudsmith (scoped) =====
 - task: NodeTool@0
   inputs:
     versionSpec: '20.x'
   displayName: "Use Node.js 20"
 
-# If your packages are SCOPED (recommended): set registry for that scope only
 - bash: |
-    set -euo pipefail
-    SCOPE="@your-scope"  # e.g. @acme
-    npm config set ${SCOPE}:registry https://npm.cloudsmith.io/${CS_ORG}/${CS_REPO}/
-    npm config set //npm.cloudsmith.io/${CS_ORG}/${CS_REPO}/:_authToken=${CLOUDSMITH_API_KEY}
+    set -eo pipefail
+
+    # Point the scope to your Cloudsmith npm registry and set auth token
+    npm config set ${NPM_SCOPE}:registry "https://npm.cloudsmith.io/${CS_WORKSPACE}/${CS_REPO}/"
+    npm config set //npm.cloudsmith.io/${CS_WORKSPACE}/${CS_REPO}/:_authToken="${CLOUDSMITH_API_KEY}"
     npm config set always-auth true
 
-    # Install from package.json
+    # Install project dependencies per package-lock.json
     npm ci
 
-    # Example: fetch a single package explicitly (optional)
-    npm install ${SCOPE}/some-package@latest
-  displayName: "npm install from Cloudsmith (scoped)"
+    # Optionally fetch a single package explicitly (safe to leave if package exists; otherwise comment out)
+    if [ -n "${NPM_SINGLE_PACKAGE}" ]; then
+      npm install "${NPM_SINGLE_PACKAGE}"
+    fi
 
-# If your packages are UNSCOPED, use this block instead of the one above:
-# - bash: |
-#     set -euo pipefail
-#     npm config set registry https://npm.cloudsmith.io/${CS_ORG}/${CS_REPO}/
-#     npm config set //npm.cloudsmith.io/${CS_ORG}/${CS_REPO}/:_authToken=${CLOUDSMITH_API_KEY}
-#     npm config set always-auth true
-#     npm ci
-#     # Example: fetch a single package explicitly (optional)
-#     npm install some-unscoped-package@latest
-#   displayName: "npm install from Cloudsmith (unscoped)"
-
+    # Optional: vulnerability audit (works with API key)
+    npm audit || true
+  displayName: "npm install from Cloudsmith (scoped + single package)"
+  env:
+    CS_WORKSPACE: $(CS_WORKSPACE)
+    CS_REPO: $(CS_REPO)
+    CLOUDSMITH_API_KEY: $(CLOUDSMITH_API_KEY)   # secret
+    NPM_SCOPE: $(NPM_SCOPE)
+    NPM_SINGLE_PACKAGE: $(NPM_SINGLE_PACKAGE)
