@@ -42,10 +42,17 @@ jobs:
         #pip install flask numpy --index-url $PIP_INDEX_URL
         if [ -f requirements.txt ]; then pip install -r requirements.txt --index-url $PIP_INDEX_URL; fi
 
+    # 5) Ensure Snyk uses this interpreter
+    - name: Pin Snyk to this Python
+      run: echo "SNYK_PYTHON_INTERPRETER=$(which python)" >> $GITHUB_ENV
+
+    # 6) Snyk test
     - name: Snyk test
       env:
         SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
       run: |
         npm -g i snyk
         snyk auth "${SNYK_TOKEN}"
-        snyk test --file=requirements.txt || true  # don't fail the build; adjust to your policy
+        # Print pip index again (masked) just before scan
+        python -m pip config list | sed -E 's/(_token:)[^@]+@/\1****@/'
+        snyk test --file=requirements.txt || true  # adjust policy as needed
