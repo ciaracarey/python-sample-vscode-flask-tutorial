@@ -67,28 +67,24 @@ jobs:
         username: token
         password: ${{ env.CLOUDSMITH_API_KEY }}
 
-    # Build and push image with docker/build-push-action
-    # Ensure <org> and <repo> are lowercase; set YOUR_IMAGE_NAME and tag as needed
-    - name: Build and push image
-      id: buildpush
-      uses: docker/build-push-action@v6
-      with:
-        context: .
-        push: true
-        tags: |
-          docker.cloudsmith.io/${{ env.CS_ORG }}/${{ env.CS_REPO }}/YOUR_IMAGE_NAME:YOUR_TAG
-        # optional: set a digest output for later reference
-        provenance: false
+# Pull the alpine image from your Cloudsmith repo
+    - name: Pull image from Cloudsmith
+      env:
+        IMAGE_PATH: docker.cloudsmith.io/${{ env.CS_ORG }}/${{ env.CS_REPO }}/alpine:latest
+      run: |
+        docker pull "$IMAGE_PATH"
+        # capture digest for evidence/correlation in Cloudsmith logs
+        docker inspect "$IMAGE_PATH" --format='{{index .RepoDigests 0}}' || true
 
-    # Install Snyk CLI and scan the pushed image
+    # Snyk container scan
     - name: Snyk container scan
       env:
         SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-        IMAGE_PATH: docker.cloudsmith.io/${{ env.CS_ORG }}/${{ env.CS_REPO }}/YOUR_IMAGE_NAME:YOUR_TAG
+        IMAGE_PATH: docker.cloudsmith.io/${{ env.CS_ORG }}/${{ env.CS_REPO }}/alpine:latest
       run: |
         npm -g i snyk
         snyk auth "${SNYK_TOKEN}"
+        # test but don't fail the build; tighten threshold or remove '|| true' as needed
         snyk container test "$IMAGE_PATH" --severity-threshold=high || true
+        # publish results to Snyk projects
         snyk container monitor "$IMAGE_PATH"
-
-   
