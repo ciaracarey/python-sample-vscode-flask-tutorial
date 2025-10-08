@@ -68,13 +68,13 @@ jobs:
         password: ${{ env.CLOUDSMITH_API_KEY }}
 
 # Pull the alpine image from your Cloudsmith repo
-    - name: Pull image from Cloudsmith
-      env:
-        IMAGE_PATH: docker.cloudsmith.io/${{ env.CS_ORG }}/${{ env.CS_REPO }}/alpine:latest
-      run: |
-        docker pull "$IMAGE_PATH"
-        # capture digest for evidence/correlation in Cloudsmith logs
-        docker inspect "$IMAGE_PATH" --format='{{index .RepoDigests 0}}' || true
+ #   - name: Pull image from Cloudsmith
+  #    env:
+   #     IMAGE_PATH: docker.cloudsmith.io/${{ env.CS_ORG }}/${{ env.CS_REPO }}/alpine:latest
+    #  run: |
+     #   docker pull "$IMAGE_PATH"
+      #  # capture digest for evidence/correlation in Cloudsmith logs
+       # docker inspect "$IMAGE_PATH" --format='{{index .RepoDigests 0}}' || true
 
     # Snyk container scan
     - name: Snyk container scan
