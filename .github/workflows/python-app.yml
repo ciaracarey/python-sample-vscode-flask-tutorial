@@ -70,7 +70,7 @@ jobs:
 # Pull the alpine image from your Cloudsmith repo
  #   - name: Pull image from Cloudsmith
   #    env:
-   #     IMAGE_PATH: docker.cloudsmith.io/${{ env.CS_ORG }}/${{ env.CS_REPO }}/alpine:latest
+   #     IMAGE_PATH: docker.cloudsmith.io/${{ env.CS_ORG }}/${{ env.CS_REPO }}/django:latest
     #  run: |
      #   docker pull "$IMAGE_PATH"
       #  # capture digest for evidence/correlation in Cloudsmith logs
@@ -80,7 +80,7 @@ jobs:
     - name: Snyk container scan
       env:
         SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-        IMAGE_PATH: docker.cloudsmith.io/${{ env.CS_ORG }}/${{ env.CS_REPO }}/alpine:latest
+        IMAGE_PATH: docker.cloudsmith.io/${{ env.CS_ORG }}/${{ env.CS_REPO }}/django:latest
       run: |
         npm -g i snyk
         snyk auth "${SNYK_TOKEN}"
