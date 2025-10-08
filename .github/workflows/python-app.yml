@@ -57,31 +57,38 @@ jobs:
         python -m pip config list | sed -E 's/(_token:)[^@]+@/\1****@/'
         snyk test --file=requirements.txt || true  # adjust policy as needed
 
-        # --- Docker image scan with Snyk (from Cloudsmith) ---
+    # --- Docker: build, push (with Docker actions), then Snyk scan ---
 
-    # Login to Cloudsmith Docker registry using the OIDC-derived API key
+    # Login to Cloudsmith Docker registry via docker/login-action
     - name: Docker login to Cloudsmith
-      run: |
-        echo "$CLOUDSMITH_API_KEY" | docker login dl.cloudsmith.io -u token --password-stdin
+      uses: docker/login-action@v3
+      with:
+        registry: docker.cloudsmith.io
+        username: token
+        password: ${{ env.CLOUDSMITH_API_KEY }}
 
-    # Pull the image from Cloudsmith (evidence in Cloudsmith download logs)
-    - name: Pull image from Cloudsmith
-      env:
-        IMAGE_PATH: dl.cloudsmith.io/${{ env.CS_ORG }}/${{ env.CS_REPO }}/YOUR_IMAGE_NAME:YOUR_TAG
-      run: |
-        docker pull "$IMAGE_PATH"
-        docker inspect "$IMAGE_PATH" --format='{{index .RepoDigests 0}}' || true
+    # Build and push image with docker/build-push-action
+    # Ensure <org> and <repo> are lowercase; set YOUR_IMAGE_NAME and tag as needed
+    - name: Build and push image
+      id: buildpush
+      uses: docker/build-push-action@v6
+      with:
+        context: .
+        push: true
+        tags: |
+          docker.cloudsmith.io/${{ env.CS_ORG }}/${{ env.CS_REPO }}/YOUR_IMAGE_NAME:YOUR_TAG
+        # optional: set a digest output for later reference
+        provenance: false
 
-    # Install Snyk CLI and scan the container image
+    # Install Snyk CLI and scan the pushed image
     - name: Snyk container scan
       env:
         SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-        IMAGE_PATH: dl.cloudsmith.io/${{ env.CS_ORG }}/${{ env.CS_REPO }}/YOUR_IMAGE_NAME:YOUR_TAG
+        IMAGE_PATH: docker.cloudsmith.io/${{ env.CS_ORG }}/${{ env.CS_REPO }}/YOUR_IMAGE_NAME:YOUR_TAG
       run: |
         npm -g i snyk
         snyk auth "${SNYK_TOKEN}"
-        # Quick test (does not fail the build; adjust to your policy)
         snyk container test "$IMAGE_PATH" --severity-threshold=high || true
-        # Publish results to Snyk Projects (so Snyk remains source of truth)
         snyk container monitor "$IMAGE_PATH"
 
+   
