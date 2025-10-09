@@ -63,7 +63,9 @@ jobs:
         EOF
         # Print pip index again (masked) just before scan
         #python -m pip config list | sed -E 's/(_token:)[^@]+@/\1****@/'
-        snyk test --file=requirements.txt || true  # adjust policy as needed
+        #snyk test --file=requirements.txt || true  # adjust policy as needed
+        snyk test --file=requirements.txt --package-manager=pip --command=.venv/bin/python
+
 
     # --- Docker: build, push (with Docker actions), then Snyk scan ---
 
