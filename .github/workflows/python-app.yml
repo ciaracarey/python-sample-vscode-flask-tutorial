@@ -36,11 +36,11 @@ jobs:
     - name: Set PIP index URL for Cloudsmith
       run: |
         echo "PIP_INDEX_URL=https://token:$CLOUDSMITH_API_KEY@dl.cloudsmith.io/basic/${{ env.CS_ORG }}/${{ env.CS_REPO }}/python/simple/" >> $GITHUB_ENV
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        #pip install flask numpy --index-url $PIP_INDEX_URL
-        if [ -f requirements.txt ]; then pip install -r requirements.txt --index-url $PIP_INDEX_URL; fi
+    #- name: Install dependencies
+    #  run: |
+     #   python -m pip install --upgrade pip
+      #  #pip install flask numpy --index-url $PIP_INDEX_URL
+       # if [ -f requirements.txt ]; then pip install -r requirements.txt --index-url $PIP_INDEX_URL; fi
 
     # 5) Ensure Snyk uses this interpreter
     - name: Pin Snyk to this Python
