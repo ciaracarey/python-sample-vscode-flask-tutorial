@@ -5,7 +5,7 @@ jobs:
     docker: 
       - image: cimg/python:3.10   # CircleCI's official Python image
     environment:
-      CS_ORG: globex-innovations
+      CS_WORKSPACE: globex-innovations
       CS_REPO: acme-nonprod
       SERVICE: ci_acme_service
       # CLOUDSMITH_API_KEY should be stored securely in CircleCI → Project Settings → Environment Variables
@@ -21,7 +21,7 @@ jobs:
       - run:
           name: Configure pip to use Cloudsmith
           command: |
-            echo "export PIP_INDEX_URL=https://token:${CLOUDSMITH_API_KEY}@dl.cloudsmith.io/basic/${CS_ORG}/${CS_REPO}/python/simple/" >> $BASH_ENV
+            echo "export PIP_INDEX_URL=https://token:${CLOUDSMITH_API_KEY}@dl.cloudsmith.io/basic/${CS_WORKSPACE}/${CS_REPO}/python/simple/" >> $BASH_ENV
             source $BASH_ENV
 
       # Install dependencies (including requirements.txt if present)
