@@ -36,37 +36,12 @@ jobs:
     - name: Set PIP index URL for Cloudsmith
       run: |
         echo "PIP_INDEX_URL=https://token:$CLOUDSMITH_API_KEY@dl.cloudsmith.io/basic/${{ env.CS_ORG }}/${{ env.CS_REPO }}/python/simple/" >> $GITHUB_ENV
-    #- name: Install dependencies
-    #  run: |
-     #   python -m pip install --upgrade pip
-      #  #pip install flask numpy --index-url $PIP_INDEX_URL
-       # if [ -f requirements.txt ]; then pip install -r requirements.txt --index-url $PIP_INDEX_URL; fi
-       
-    # 5) Ensure Snyk uses this interpreter
-    - name: Pin Snyk to this Python
-      run: echo "SNYK_PYTHON_INTERPRETER=$(which python)" >> $GITHUB_ENV
-
-    # 6) Snyk test
-    - name: Snyk test
-      env:
-        SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+    - name: Install dependencies
       run: |
-        npm -g i snyk
-        snyk auth "${SNYK_TOKEN}"
-        
-        # Write pip.conf pointing to Cloudsmith
-        mkdir -p ~/.pip
-        cat > ~/.pip/pip.conf <<EOF
-        [global]
-        index-url = https://token:${CLOUDSMITH_API_KEY}@dl.cloudsmith.io/basic/${CS_ORG}/${CS_REPO}/python/simple/
-        extra-index-url =
-        EOF
-        # Print pip index again (masked) just before scan
-        #python -m pip config list | sed -E 's/(_token:)[^@]+@/\1****@/'
-        #snyk test --file=requirements.txt || true  # adjust policy as needed
-        snyk test --file=requirements.txt --package-manager=pip --command=.venv/bin/python
-
-
+        python -m pip install --upgrade pip
+        #pip install flask numpy --index-url $PIP_INDEX_URL
+        if [ -f requirements.txt ]; then pip install -r requirements.txt --index-url $PIP_INDEX_URL; fi
+    
     # --- Docker: build, push (with Docker actions), then Snyk scan ---
 
     # Login to Cloudsmith Docker registry via docker/login-action
