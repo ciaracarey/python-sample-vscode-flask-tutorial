@@ -16,7 +16,9 @@ steps:
 
 # ===== Cloudsmith: authenticate via native ADO OIDC (no CLI install) =====
 # This exchanges the ADO OIDC token for a short-lived Cloudsmith API key.
-- task: CloudsmithCliInstallAndAuthenticate@1
+#- task: CloudsmithCliInstallAndAuthenticate@1
+- task: CloudsmithCliSetupAndAuthenticate@1
+
   displayName: "Cloudsmith: Authenticate via OIDC (no Entra)"
   inputs:
     authMethod: 'oidc'
