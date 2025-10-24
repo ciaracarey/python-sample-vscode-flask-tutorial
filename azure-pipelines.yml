@@ -7,12 +7,51 @@ pool:
 
 variables:
   # ---- Cloudsmith settings ----
-  CS_WORKSPACE: 'globex-innovations'   
+  CS_WORKSPACE: 'globex-innovations'
   CS_REPO: 'acme-nonprod'
   CS_SERVICE_SLUG: 'ci_acme_service'   # service account slug (username for Basic Auth)
 
+  # ---- OIDC Audience (must match your Cloudsmith OIDC Provider's Audience) ----
+  CSM_AUDIENCE: 'cloudsmith'            # change if your Provider uses a different Audience
+
 steps:
 - checkout: self
+
+# ===== Mint ADO OIDC token and exchange for Cloudsmith short-lived token =====
+# NOTE: In the pipeline's "Agent job" options, enable:
+#       "Allow scripts to access the OAuth token"
+- bash: |
+    set -euo pipefail
+
+    # 1) Mint an ADO OIDC token for this job (audience must match Cloudsmith OIDC Provider)
+    OIDC_TOKEN=$(curl -s -X POST \
+      -H "Authorization: Bearer $(System.AccessToken)" \
+      -H "Content-Length: 0" \
+      "$(System.OidcRequestUri)?api-version=7.1&audience=$(CSM_AUDIENCE)" \
+      | jq -r '.oidcToken')
+
+    if [ -z "${OIDC_TOKEN:-}" ] || [ "$OIDC_TOKEN" = "null" ]; then
+      echo "Failed to mint ADO OIDC token"; exit 1
+    fi
+
+    # 2) Exchange for a Cloudsmith API token bound to your service account
+    CSM_TOKEN=$(curl -s -X POST \
+      -H "Content-Type: application/json" \
+      -d "{\"oidc_token\":\"$OIDC_TOKEN\",\"service_slug\":\"$(CS_SERVICE_SLUG)\"}" \
+      "https://api.cloudsmith.io/openid/$(CS_WORKSPACE)/" \
+      | jq -r '.token')
+
+    if [ -z "${CSM_TOKEN:-}" ] || [ "$CSM_TOKEN" = "null" ]; then
+      echo "Failed to obtain Cloudsmith token"; exit 1
+    fi
+
+    # 3) Export as a secret pipeline variable for later steps
+    echo "##vso[task.setvariable variable=CLOUDSMITH_API_KEY;issecret=true]$CSM_TOKEN"
+  displayName: "Get Cloudsmith token via ADO OIDC"
+  env:
+    CSM_AUDIENCE: $(CSM_AUDIENCE)
+    CS_SERVICE_SLUG: $(CS_SERVICE_SLUG)
+    CS_WORKSPACE: $(CS_WORKSPACE)
 
 # ===== Python: install deps from Cloudsmith =====
 - task: UsePythonVersion@0
@@ -30,4 +69,4 @@ steps:
     CS_WORKSPACE: $(CS_WORKSPACE)
     CS_REPO: $(CS_REPO)
     CS_SERVICE_SLUG: $(CS_SERVICE_SLUG)
-    CLOUDSMITH_API_KEY: $(CLOUDSMITH_API_KEY)   # secret
+    CLOUDSMITH_API_KEY: $(CLOUDSMITH_API_KEY)   # set in the OIDC step above
