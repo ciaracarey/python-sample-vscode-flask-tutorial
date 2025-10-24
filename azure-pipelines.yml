@@ -15,15 +15,14 @@ steps:
 - checkout: self
 
 # ===== Cloudsmith: authenticate via native ADO OIDC (no CLI install) =====
-# This task exchanges the ADO OIDC token for a short-lived Cloudsmith API key
-# and exposes it as $(CLOUDSMITH_API_KEY) for later steps.
-- task: CloudsmithCliInstallAndAuthenticate
+# This exchanges the ADO OIDC token for a short-lived Cloudsmith API key.
+- task: CloudsmithCliInstallAndAuthenticate@1
   displayName: "Cloudsmith: Authenticate via OIDC (no Entra)"
   inputs:
     authMethod: 'oidc'
     oidcAuthOnly: true        # just auth; skip CLI install
     pipInstall: false
-    cliVersion: ''            # (ignored when oidcAuthOnly=true)
+    cliVersion: ''            # ignored when oidcAuthOnly=true
     oidcNamespace: '$(CS_WORKSPACE)'
     oidcServiceSlug: '$(CS_SERVICE_SLUG)'
 
