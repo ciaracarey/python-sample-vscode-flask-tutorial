@@ -1,3 +1,2 @@
-spotipy==2.25.0
+spotipy==2.21.0
 numpy
-requests==2.6.1
