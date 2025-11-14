@@ -10,7 +10,7 @@ Flask==3.0.3
 
 # Non-SPDX (oss_license = null) – should NOT match
 uvicorn==0.29.0
-protobuf==5.27.1
+protobuf
 
 # Non-SPDX but copyleft-ish license text (should match via raw_license fallback)
 sqlparse==0.5.1
