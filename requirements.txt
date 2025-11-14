@@ -1,7 +1,7 @@
 #spotipy==2.21.0
 #numpy
 # SPDX + copyleft (should match)
-numpy==1.26.4
+numpy
 
 # SPDX + non-copyleft (should NOT match)
 Django==5.0.3
