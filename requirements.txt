@@ -1,2 +1,23 @@
-spotipy==2.21.0
-numpy
+#spotipy==2.21.0
+#numpy
+# SPDX + copyleft (should match)
+numpy==1.26.4
+
+# SPDX + non-copyleft (should NOT match)
+Django==5.0.3
+requests==2.32.3
+Flask==3.0.3
+
+# Non-SPDX (oss_license = null) – should NOT match
+uvicorn==0.29.0
+protobuf==5.27.1
+
+# Non-SPDX but copyleft-ish license text (should match via raw_license fallback)
+sqlparse==0.5.1
+
+# SPDX but not in your copyleft set (sanity)
+pydantic==2.8.2
+Jinja2==3.1.4
+
+# Package with inconsistent / unusual license strings (good edge-case)
+filelock==3.14.0
