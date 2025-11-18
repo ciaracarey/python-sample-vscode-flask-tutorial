@@ -31,16 +31,24 @@ jobs:
         oidc-namespace:    ${{ env.CS_ORG }}
         oidc-service-slug: ${{ env.SERVICE }}
         oidc-auth-only:    "true"
-        
-    # After authenticating with Cloudsmith, set the PIP_INDEX_URL environment variable
-    - name: Set PIP index URL for Cloudsmith
+
+    # 2. Install uv
+    - name: Install uv
       run: |
-        echo "PIP_INDEX_URL=https://token:$CLOUDSMITH_API_KEY@dl.cloudsmith.io/basic/${{ env.CS_ORG }}/${{ env.CS_REPO }}/python/simple/" >> $GITHUB_ENV
-    - name: Install dependencies
+        python -m pip install --upgrade pip
+        pip install uv
+
+    # 3. Configure uv to use Cloudsmith index
+    - name: Configure uv index for Cloudsmith
       run: |
-        python -m uv pip install --upgrade pip
-        #pip install flask numpy --index-url $PIP_INDEX_URL
-        if [ -f requirements.txt ]; then pip install -r requirements.txt --index-url $PIP_INDEX_URL; fi
+        echo "UV_INDEX_URL=https://token:${CLOUDSMITH_API_KEY}@dl.cloudsmith.io/basic/${{ env.CS_ORG }}/${{ env.CS_REPO }}/python/simple/" >> $GITHUB_ENV
+
+    # 4. Install dependencies via uv (so we see the EPM 403s here)
+    - name: Install dependencies with uv
+      run: |
+        if [ -f requirements.txt ]; then
+          uv pip install -r requirements.txt
+        fi
     
     # --- Docker: build, push (with Docker actions), then Snyk scan ---
 
