@@ -39,9 +39,9 @@ jobs:
         pip install uv
 
     # 3. Configure uv to use Cloudsmith index
-    #- name: Configure uv index for Cloudsmith
-    #  run: |
-    #    echo "UV_INDEX_URL=https://token:${CLOUDSMITH_API_KEY}@dl.cloudsmith.io/basic/${{ env.CS_ORG }}/${{ env.CS_REPO }}/python/simple/" >> $GITHUB_ENV
+    - name: Configure uv index for Cloudsmith
+      run: |
+        echo "UV_INDEX_URL=https://token:${CLOUDSMITH_API_KEY}@dl.cloudsmith.io/basic/${{ env.CS_ORG }}/${{ env.CS_REPO }}/python/simple/" >> $GITHUB_ENV
 
     # 4. Install dependencies via uv (so we see the EPM 403s here)
     - name: Install dependencies with uv
