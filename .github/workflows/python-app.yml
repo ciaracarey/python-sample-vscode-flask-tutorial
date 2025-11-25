@@ -11,7 +11,7 @@ permissions:
 
 env:
   CS_ORG:   globex-innovations
-  CS_REPO:  test2
+  CS_REPO:  test3
   SERVICE:  gha-service      # Cloudsmith service-account
   
 jobs:
