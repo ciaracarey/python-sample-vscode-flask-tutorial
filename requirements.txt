@@ -1,48 +1,23 @@
-requests==2.6.0
-aiohttp==3.12.15
-azure-identity==1.25.0
-azure-mgmt-automation==1.0.0
-azure-mgmt-botservice==2.0.0
-azure-mgmt-compute==37.0.0
-azure-mgmt-containerservice==39.1.0
-azure-mgmt-core==1.6.0
-azure-mgmt-costmanagement==4.0.1
-azure-mgmt-desktopvirtualization==2.0.0
-azure-mgmt-dns==9.0.0
-azure-mgmt-eventhub==11.2.0
-azure-mgmt-loganalytics==12.0.0
-azure-mgmt-keyvault==12.1.0
-azure-mgmt-monitor==7.0.0
-azure-mgmt-msi==7.1.0
-azure-mgmt-network==29.0.0
-azure-mgmt-portal==1.0.0
-azure-mgmt-privatedns==1.2.0
-azure-mgmt-rdbms==10.1.0
-azure-mgmt-recoveryservices==3.1.0
-azure-mgmt-redhatopenshift==2.0.0
-azure-mgmt-resource==24.0.0
-azure-mgmt-sql==3.0.1
-azure-mgmt-sqlvirtualmachine==1.0.0b6  # using beta to enable required features
-azure-mgmt-storage==23.1.0
-azure-mgmt-subscription==3.1.1
-azure-mgmt-web==10.0.0
-azure-monitor-query==2.0.0
-boto3==1.40.40
-botocore==1.40.40
-certifi==2025.8.3
-cryptography==46.0.1
-deepdiff==8.6.1
-fastapi==0.118.0
-kubernetes==24.2.0  # do not change, otherwise apiversions like batch/v1beta1 wont be supported anymore
-msgraph-core==0.2.2  # be careful when updating
-msrestazure==0.6.4.post1
-opentelemetry-exporter-otlp-proto-grpc==1.37.0
-pandas==2.3.2
-pika==1.3.2
-python-arango==8.2.2
-PyYAML==6.0.3
-requests==2.32.5
-setuptools==80.9.0
-slack-bolt==1.25.0
-slack-sdk==3.36.0
-uvicorn==0.37.0
+spotipy==2.21.0
+#numpy
+# SPDX + copyleft (should match)
+numpy
+
+# SPDX + non-copyleft (should NOT match)
+Django==5.0.3
+requests==2.32.3
+Flask==3.0.3
+
+# Non-SPDX (oss_license = null) – should NOT match
+uvicorn==0.29.0
+protobuf
+
+# Non-SPDX but copyleft-ish license text (should match via raw_license fallback)
+sqlparse==0.5.1
+
+# SPDX but not in your copyleft set (sanity)
+pydantic==2.8.2
+Jinja2==3.1.4
+
+# Package with inconsistent / unusual license strings (good edge-case)
+filelock==3.14.0
