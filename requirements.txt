@@ -1,4 +1,4 @@
-dalex==1.7.2
+# dalex==1.7.2
 spotipy==2.21.0
 # SPDX + copyleft (should match)
 numpy
