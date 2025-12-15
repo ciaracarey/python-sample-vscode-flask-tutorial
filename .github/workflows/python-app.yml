@@ -11,7 +11,7 @@ permissions:
 
 env:
   CS_ORG:   globex-innovations
-  CS_REPO:  test3
+  CS_REPO:  acme-nonprod
   SERVICE:  gha-service      # Cloudsmith service-account
   
 jobs:
@@ -19,7 +19,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v4 
 
     - uses: actions/setup-python@v5
       with: { python-version: "3.10" }
@@ -50,7 +50,7 @@ jobs:
           uv pip install --system -r requirements.txt
         fi
     
-    # --- Docker: build, push (with Docker actions), then Snyk scan ---
+    # --- Docker: build, push (with Docker actions), then Snyk scan --
 
     # Login to Cloudsmith Docker registry via docker/login-action
     - name: Docker login to Cloudsmith
