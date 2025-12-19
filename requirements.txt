@@ -7,7 +7,7 @@ numpy
 # SPDX + non-copyleft (should NOT match)
 Django
 #Django
-requests==2.32.3
+requests==2.6.0
 Flask==3.0.3
 
 # Non-SPDX (oss_license = null) – should NOT match
