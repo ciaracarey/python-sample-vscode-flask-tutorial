@@ -1,12 +1,11 @@
 # dalex==1.7.2
 #spotipy
-#spotipy 
 # SPDX + copyleft (should match)
 numpy
 
 # SPDX + non-copyleft (should NOT match)
-Django==5.0.3
-#Django
+#Django==5.0.3
+Django
 requests==2.6.0
 Flask==3.0.3
 
