@@ -47,7 +47,7 @@ jobs:
     - name: Install dependencies with uv
       run: |
         if [ -f requirements.txt ]; then
-          uv pip install --system -r requirements.txt
+          pip install --system -r requirements.txt
         fi
     
     # --- Docker: build, push (with Docker actions), then Snyk scan --
