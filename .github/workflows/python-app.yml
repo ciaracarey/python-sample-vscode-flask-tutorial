@@ -11,7 +11,7 @@ permissions:
 
 env:
   CS_ORG:   globex-innovations
-  CS_REPO:  acme-prod 
+  CS_REPO:  acme-nonprod 
   SERVICE:  gha-service      # Cloudsmith service-account
   
 jobs:
