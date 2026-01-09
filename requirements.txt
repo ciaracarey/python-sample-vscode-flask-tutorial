@@ -6,7 +6,7 @@ numpy
 # SPDX + non-copyleft (should NOT match)
 Flask==3.0.3
 
-# Non-SPDX (oss_license = null) – should NOT match
+# Non-SPDX (oss_license = null) – should NOT match 
 uvicorn==0.29.0
 protobuf
 
