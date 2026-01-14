@@ -28,8 +28,8 @@ jobs:
       - run:
           name: Install dependencies
           command: |
-            uv pip install flake8 pytest
-            if [ -f requirements.txt ]; then uv pip install -r requirements.txt; fi
+            uv pip install --system flake8 pytest
+            if [ -f requirements.txt ]; then uv pip install --system -r requirements.txt; fi
 
       # Run tests
       - run:
