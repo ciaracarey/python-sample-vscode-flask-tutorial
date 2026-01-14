@@ -19,4 +19,6 @@ pydantic==2.8.2
 # Package with inconsistent / unusual license strings (good edge-case)
 filelock==3.14.0
 
-spotipy==2.25.0
+#spotipy==2.25.0
+spotipy
+
