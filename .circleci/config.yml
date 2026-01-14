@@ -2,7 +2,7 @@ version: 2.1
 
 jobs:
   build:
-    docker:
+    docker: 
       - image: cimg/python:3.10   # CircleCI's official Python image
     environment:
       CS_WORKSPACE: globex-innovations
@@ -12,14 +12,14 @@ jobs:
     steps:
       - checkout
 
-      # Install uv (minimal swap from pip upgrade)
+      # Upgrade pip
       - run:
-          name: Install uv
-          command: python -m pip install --upgrade uv
+          name: Upgrade pip
+          command: python -m pip install --upgrade pip
 
-      # Configure index URL for uv/pip
+      # Configure PIP_INDEX_URL with Cloudsmith API key
       - run:
-          name: Configure uv to use Cloudsmith
+          name: Configure pip to use Cloudsmith
           command: |
             echo "export PIP_INDEX_URL=https://token:${CLOUDSMITH_API_KEY}@dl.cloudsmith.io/basic/${CS_WORKSPACE}/${CS_REPO}/python/simple/" >> $BASH_ENV
             source $BASH_ENV
@@ -28,8 +28,13 @@ jobs:
       - run:
           name: Install dependencies
           command: |
-            uv pip install --system flake8 pytest
-            if [ -f requirements.txt ]; then uv pip install --system -r requirements.txt; fi
+            pip install flake8 pytest
+            if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+
+      # Run tests
+      - run:
+          name: Run tests
+          command: pytest
 
 workflows:
   build_and_test:
