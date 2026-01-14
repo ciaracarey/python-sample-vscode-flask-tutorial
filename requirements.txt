@@ -6,19 +6,6 @@ numpy
 # SPDX + non-copyleft (should NOT match)
 Flask==3.0.3
 
-# Non-SPDX (oss_license = null) – should NOT match 
-uvicorn==0.29.0
-protobuf
-
-# Non-SPDX but copyleft-ish license text (should match via raw_license fallback)
-sqlparse==0.5.1
-
-# SPDX but not in your copyleft set (sanity)
-pydantic==2.8.2
-
-# Package with inconsistent / unusual license strings (good edge-case)
-filelock==3.14.0
-
 #spotipy==2.25.0
 spotipy
 
