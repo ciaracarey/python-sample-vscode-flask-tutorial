@@ -5,7 +5,7 @@ jobs:
     docker: 
       - image: cimg/python:3.10   # CircleCI's official Python image
     environment:
-      CS_WORKSPACE: globex-innovations
+      CS_WORKSPACE: globex-innovations 
       CS_REPO: acme-nonprod
       SERVICE: gha-service
       # CLOUDSMITH_API_KEY should be stored securely in CircleCI → Project Settings → Environment Variables
