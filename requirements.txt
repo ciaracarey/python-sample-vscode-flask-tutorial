@@ -3,5 +3,5 @@
 numpy
 
 #spotipy==2.25.0
-spotipy
+#spotipy
 
