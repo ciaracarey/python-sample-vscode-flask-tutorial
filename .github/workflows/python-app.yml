@@ -49,13 +49,4 @@ jobs:
         if [ -f requirements.txt ]; then
           uv pip install --system -r requirements.txt
         fi
-    
-    # --- Docker: build, push (with Docker actions), then Snyk scan --
 
-    # Login to Cloudsmith Docker registry via docker/login-action
-    - name: Docker login to Cloudsmith
-      uses: docker/login-action@v3
-      with:
-        registry: docker.cloudsmith.io
-        username: token
-        password: ${{ env.CLOUDSMITH_API_KEY }}
