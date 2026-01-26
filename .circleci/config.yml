@@ -7,7 +7,7 @@ jobs:
     environment:
       CS_WORKSPACE: globex-innovations 
       CS_REPO: acme-nonprod
-      SERVICE: gha-service
+      SERVICE: ciara-mulvihill
       # CLOUDSMITH_API_KEY should be stored securely in CircleCI → Project Settings → Environment Variables
     steps:
       - checkout
