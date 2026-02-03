@@ -2,8 +2,7 @@
 # SPDX + copyleft (should match)
 numpy
 
-spotipy
-#spotipy
+spotipy==2.25.0
 django
 requests
 flask
