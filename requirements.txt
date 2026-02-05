@@ -6,3 +6,4 @@ spotipy
 django
 requests
 flask
+boto3
