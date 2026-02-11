@@ -9,7 +9,7 @@ permissions:
   contents: read 
   id-token: write               # needed for Cloudsmith OIDC
 
-env:
+env: 
   CS_ORG:   globex-innovations
   CS_REPO:  acme-nonprod 
   SERVICE:  gha-service      # Cloudsmith service-account
