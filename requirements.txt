@@ -1,6 +1,6 @@
 # dalex==1.7.2
 # SPDX + copyleft (should match)
-numpy 
 spotipy==2.25.0
+numpy 
 django
 requests
