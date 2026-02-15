@@ -1,3 +1,4 @@
 # dalex==1.7.2
 # SPDX + copyleft (should match)
-spotipy==2.25.0
+# spotipy==2.25.0
+requests==2.6.0
