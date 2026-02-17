@@ -4,48 +4,54 @@
 # requests==2.6.1
 # redis
 # Protected packages (exact matches)
-urllib3==1.26.5
-django==2.2.0
-requests==2.31.0
-numpy==1.26.4
-pandas==2.2.0
-flask==3.0.0
-boto3==1.34.34
-botocore==1.34.34
-pytest==8.0.0
-sqlalchemy==2.0.25
-fastapi==0.109.0
+# SPDX + copyleft test packages
+dalex
+spotipy
+redis
+
+# Protected packages (exact matches)
+urllib3
+django
+requests
+numpy
+pandas
+flask
+boto3
+botocore
+pytest
+sqlalchemy
+fastapi
 pydantic
 
 # Common upstream dependencies
-certifi==2024.2.2
-charset-normalizer==3.3.2
-idna==3.6
-six==1.16.0
-typing-extensions==4.9.0
-python-dateutil==2.8.2
-pytz==2024.1
-click==8.1.7
-setuptools==69.0.3
-wheel==0.42.0
+certifi
+charset-normalizer
+idna
+six
+typing-extensions
+python-dateutil
+pytz
+click
+setuptools
+wheel
 
 # Legitimate hyphenated packages
-django-rest-framework==0.1.0
-python-jose==3.3.0
-flask-login==0.6.3
-pytest-cov==4.1.0
-sqlalchemy-utils==0.41.1
+django-rest-framework
+python-jose
+flask-login
+pytest-cov
+sqlalchemy-utils
 
-# Numeric package names
-h11==0.14.0
-uvicorn==0.27.0
-pydantic-core==2.16.2
+# Numeric / structured names
+h11
+uvicorn
+pydantic-core
 
 # Popular modern ecosystem packages
-rich==13.7.0
-typer==0.9.0
-httpx==0.26.0
-starlette==0.36.3
-black==24.1.0
-isort==5.13.2
-mypy==1.8.0
+rich
+typer
+httpx
+starlette
+black
+isort
+mypy
