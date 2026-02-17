@@ -10,8 +10,8 @@ permissions:
   id-token: write               # needed for Cloudsmith OIDC
 
 env: 
-  CS_ORG:   tenable
-  CS_REPO:  ciara-python-test
+  CS_ORG:   globex-innovations
+  CS_REPO:  acme-nonprod1 
   SERVICE:  gha-service      # Cloudsmith service-account
   
 jobs:
@@ -24,6 +24,14 @@ jobs:
     - uses: actions/setup-python@v5
       with: { python-version: "3.12" }
 
+    # 1. OIDC login – populates $CLOUDSMITH_API_KEY
+    - name: Cloudsmith OIDC login
+      uses: cloudsmith-io/cloudsmith-cli-action@v1.0.2
+      with:
+        oidc-namespace:    ${{ env.CS_ORG }}
+        oidc-service-slug: ${{ env.SERVICE }}
+        oidc-auth-only:    "true"
+
     # 2. Install uv
     - name: Install uv
       run: |
@@ -33,12 +41,11 @@ jobs:
     # 3. Configure uv to use Cloudsmith index
     - name: Configure uv index for Cloudsmith
       run: |
-        echo "UV_INDEX_URL=https://token:${{ secrets.CS_API_KEY }}@dl.cloudsmith.io/basic/${{ env.CS_ORG }}/${{ env.CS_REPO }}/python/simple/" >> $GITHUB_ENV
-  
+        echo "UV_INDEX_URL=https://token:${CLOUDSMITH_API_KEY}@dl.cloudsmith.io/basic/${{ env.CS_ORG }}/${{ env.CS_REPO }}/python/simple/" >> $GITHUB_ENV
+
     # 4. Install dependencies via uv (so we see the EPM 403s here)
     - name: Install dependencies with uv
       run: |
         if [ -f requirements.txt ]; then
           uv pip install --system -vv -r requirements.txt
         fi
-
