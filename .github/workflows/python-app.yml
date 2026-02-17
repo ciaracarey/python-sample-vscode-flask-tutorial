@@ -24,14 +24,6 @@ jobs:
     - uses: actions/setup-python@v5
       with: { python-version: "3.12" }
 
-    # 1. OIDC login – populates $CLOUDSMITH_API_KEY
-    - name: Cloudsmith OIDC login
-      uses: cloudsmith-io/cloudsmith-cli-action@v1.0.2
-      with:
-        oidc-namespace:    ${{ env.CS_ORG }}
-        oidc-service-slug: ${{ env.SERVICE }}
-        oidc-auth-only:    "true"
-
     # 2. Install uv
     - name: Install uv
       run: |
