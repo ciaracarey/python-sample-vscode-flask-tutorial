@@ -43,6 +43,13 @@ jobs:
       run: |
         echo "UV_INDEX_URL=https://token:${CLOUDSMITH_API_KEY}@dl.cloudsmith.io/basic/${{ env.CS_ORG }}/${{ env.CS_REPO }}/python/simple/" >> $GITHUB_ENV
 
+    # 3test. Configure uv to use Cloudsmith index for my test
+    - name: Configure uv index for Cloudsmith
+      env:
+         CS_API: ${{ secrets.CS_API_KEY }}
+      run: |
+        echo "UV_INDEX_URL=https://token:${CS_API}@dl.cloudsmith.io/basic/tenable/ciara-python-test/python/simple/" >> $GITHUB_ENV
+
     # 4. Install dependencies via uv (so we see the EPM 403s here)
     - name: Install dependencies with uv
       run: |
