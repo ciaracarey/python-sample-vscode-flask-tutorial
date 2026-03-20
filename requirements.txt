@@ -2,7 +2,6 @@
 # SPDX + copyleft (should match)
 # spotipy==2.25.0
 # requests==2.6.0
-botocore
 dalex
 spotipy
 # requests==2.6.1
