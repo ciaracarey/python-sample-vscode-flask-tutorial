@@ -40,7 +40,7 @@ steps:
     set -eo pipefail
     python -m pip install --upgrade pip
     pip install -r requirements.txt \
-      --index-url "https://${CS_SERVICE_SLUG}:${CLOUDSMITH_API_KEY}@dl.cloudsmith.io/basic/${CS_WORKSPACE}/${CS_REPO}/python/simple/"
+      --index-url "https://${CS_SERVICE_SLUG}:${CLOUDSMITH_API_KEY}@dl.cloudsmith.io/basic/${CS_WORKSPACE}/${CS_REPO}/python/simple/" 
   displayName: "pip install from Cloudsmith"
   env:
     CS_WORKSPACE: $(CS_WORKSPACE)
