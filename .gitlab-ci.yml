@@ -1,0 +1,61 @@
+stages:
+  - build
+
+variables:
+  PYTHON_VERSION: "3.12"
+  CS_ORG: "globex-innovations"
+  CS_REPO: "bus-test"
+  CS_SERVICE: "gha-service"
+  CS_API_URL: "https://api.cloudsmith.io"
+
+build:
+  stage: build
+  image: python:${PYTHON_VERSION}
+
+  id_tokens:
+    CLOUDSMITH_ID_TOKEN:
+      aud: "${CS_API_URL}/openid/${CS_ORG}"
+
+  script:
+    # ──────────────────────────────
+    # 1. Exchange GitLab OIDC token
+    #    for a Cloudsmith API key
+    # ──────────────────────────────
+    - apt-get update -qq && apt-get install -y -qq jq
+
+    - |
+      echo "Authenticating with Cloudsmith via OIDC..."
+      CLOUDSMITH_API_KEY=$(curl -s -X POST \
+        -H "Content-Type: application/json" \
+        -d "{\"oidc_token\":\"${CLOUDSMITH_ID_TOKEN}\", \"service_slug\":\"${CS_SERVICE}\"}" \
+        ${CS_API_URL}/openid/${CS_ORG}/ | jq -r '.token')
+
+      if [ -z "$CLOUDSMITH_API_KEY" ] || [ "$CLOUDSMITH_API_KEY" = "null" ]; then
+        echo "ERROR: Failed to obtain Cloudsmith token"
+        exit 1
+      fi
+
+      echo "CLOUDSMITH_API_KEY=${CLOUDSMITH_API_KEY}" >> build.env
+      echo "Successfully authenticated with Cloudsmith"
+
+    # ──────────────────────────────
+    # 2. Install uv
+    # ──────────────────────────────
+    - pip install --upgrade pip uv
+
+    # ──────────────────────────────
+    # 3. Install dependencies via uv
+    #    Cooldown 403s will appear
+    #    here if triggered
+    # ──────────────────────────────
+    - |
+      source build.env
+      export UV_INDEX_URL="https://token:${CLOUDSMITH_API_KEY}@dl.cloudsmith.io/basic/${CS_ORG}/${CS_REPO}/python/simple/"
+
+      if [ -f requirements.txt ]; then
+        echo "Installing dependencies from requirements.txt..."
+        uv pip install --system -vv -r requirements.txt
+      else
+        echo "No requirements.txt found"
+        exit 1
+      fi
