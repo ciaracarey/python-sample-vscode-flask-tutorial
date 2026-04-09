@@ -3,6 +3,7 @@
 # spotipy
 # spotipy==2.25.0 
 requests
+pymican
 # dalex 
 # spotipy
 # requests==2.6.1
