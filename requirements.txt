@@ -1,3 +1,4 @@
 requests
 pymican
+spotipy==2.25.0
 
