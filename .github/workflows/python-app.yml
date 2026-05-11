@@ -47,5 +47,5 @@ jobs:
     - name: Install dependencies with uv
       run: |
         if [ -f requirements.txt ]; then
-          pip install --system -vv -r requirements.txt
+          uv pip install --system -vv -r requirements.txt
         fi
