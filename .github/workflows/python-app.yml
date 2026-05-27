@@ -22,8 +22,6 @@ jobs:
     - uses: actions/checkout@v4 
     - uses: actions/setup-python@v5
       with: { python-version: "3.12" }
-    - uses: actions/setup-node@v4
-      with: { node-version: "20" }
 
     # 1. OIDC login – populates $CLOUDSMITH_API_KEY
     - name: Cloudsmith OIDC login
@@ -49,17 +47,4 @@ jobs:
       run: |
         if [ -f requirements.txt ]; then
           uv pip install --system -vv -r requirements.txt
-        fi
-
-    # 5. Configure npm to use Cloudsmith index
-    - name: Configure npm index for Cloudsmith
-      run: |
-        npm config set registry https://npm.cloudsmith.io/${{ env.CS_ORG }}/${{ env.CS_REPO }}/
-        npm config set //npm.cloudsmith.io/${{ env.CS_ORG }}/${{ env.CS_REPO }}/:_authToken ${CLOUDSMITH_API_KEY}
-
-    # 6. Install npm dependencies
-    - name: Install dependencies with npm
-      run: |
-        if [ -f package.json ]; then
-          npm install --verbose
         fi
