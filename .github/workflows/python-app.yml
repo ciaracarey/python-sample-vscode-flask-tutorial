@@ -50,12 +50,6 @@ jobs:
         if [ -f requirements.txt ]; then
           uv pip install --system -vv -r requirements.txt
         fi
-        
-     # 5. Configure npm to use Cloudsmith index
-    - name: Configure npm index for Cloudsmith
-      run: |
-        npm config set registry https://dl.cloudsmith.io/basic/${{ env.CS_ORG }}/${{ env.CS_REPO }}/npm/
-        npm config set //dl.cloudsmith.io/basic/${{ env.CS_ORG }}/${{ env.CS_REPO }}/npm/:_authToken ${CLOUDSMITH_API_KEY}
 
     # 5. Configure npm to use Cloudsmith index
     - name: Configure npm index for Cloudsmith
