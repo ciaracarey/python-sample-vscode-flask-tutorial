@@ -57,6 +57,12 @@ jobs:
         npm config set registry https://dl.cloudsmith.io/basic/${{ env.CS_ORG }}/${{ env.CS_REPO }}/npm/
         npm config set //dl.cloudsmith.io/basic/${{ env.CS_ORG }}/${{ env.CS_REPO }}/npm/:_authToken ${CLOUDSMITH_API_KEY}
 
+    # 5. Configure npm to use Cloudsmith index
+    - name: Configure npm index for Cloudsmith
+      run: |
+        npm config set registry https://npm.cloudsmith.io/${{ env.CS_ORG }}/${{ env.CS_REPO }}/
+        npm config set //npm.cloudsmith.io/${{ env.CS_ORG }}/${{ env.CS_REPO }}/:_authToken ${CLOUDSMITH_API_KEY}
+
     # 6. Install npm dependencies
     - name: Install dependencies with npm
       run: |
