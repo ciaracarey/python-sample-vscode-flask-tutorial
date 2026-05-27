@@ -1,4 +1,4 @@
-name: Python CI (uv + Cloudsmith — wheel-only) 
+name: Python CI + npm (uv + Cloudsmith — wheel-only) 
  
 on: 
   push:          { branches: ["main"] }
@@ -20,9 +20,10 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4 
-
     - uses: actions/setup-python@v5
       with: { python-version: "3.12" }
+    - uses: actions/setup-node@v4
+      with: { node-version: "20" }
 
     # 1. OIDC login – populates $CLOUDSMITH_API_KEY
     - name: Cloudsmith OIDC login
@@ -43,9 +44,22 @@ jobs:
       run: |
         echo "UV_INDEX_URL=https://token:${CLOUDSMITH_API_KEY}@dl.cloudsmith.io/basic/${{ env.CS_ORG }}/${{ env.CS_REPO }}/python/simple/" >> $GITHUB_ENV
 
-    # 4. Install dependencies via uv (so we see the EPM 403s here)
+    # 4. Install python dependencies via uv (we see the 403s here, if we try to consume a quarantined package)
     - name: Install dependencies with uv
       run: |
         if [ -f requirements.txt ]; then
           uv pip install --system -vv -r requirements.txt
+        fi
+        
+     # 5. Configure npm to use Cloudsmith index
+    - name: Configure npm index for Cloudsmith
+      run: |
+        npm config set registry https://dl.cloudsmith.io/basic/${{ env.CS_ORG }}/${{ env.CS_REPO }}/npm/
+        npm config set //dl.cloudsmith.io/basic/${{ env.CS_ORG }}/${{ env.CS_REPO }}/npm/:_authToken ${CLOUDSMITH_API_KEY}
+
+    # 6. Install npm dependencies
+    - name: Install dependencies with npm
+      run: |
+        if [ -f package.json ]; then
+          npm install --verbose
         fi

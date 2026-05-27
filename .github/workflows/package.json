@@ -1,0 +1,7 @@
+{
+  "name": "demo",
+  "dependencies": {
+    "axios": "latest",
+    "lodash": "latest"
+  }
+}
