@@ -48,3 +48,20 @@ jobs:
         if [ -f requirements.txt ]; then
           uv pip install --system -vv -r requirements.txt
         fi
+
+    # 5. Node setup
+    - uses: actions/setup-node@v4
+      with:
+        node-version: "20"
+
+    # 6. Configure npm to use Cloudsmith registry via the same OIDC token
+    - name: Configure npm registry for Cloudsmith
+      run: |
+        cat > ~/.npmrc <<EOF
+        registry=https://npm.cloudsmith.io/${{ env.CS_ORG }}/${{ env.CS_REPO }}/
+        //npm.cloudsmith.io/${{ env.CS_ORG }}/${{ env.CS_REPO }}/:_authToken=${CLOUDSMITH_API_KEY}
+        EOF
+
+    # 7. Install knip
+    - name: Install knip
+      run: npm install knip --verbose
