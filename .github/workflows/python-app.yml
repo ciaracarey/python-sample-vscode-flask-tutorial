@@ -52,7 +52,7 @@ jobs:
     # 5. Node setup
     - uses: actions/setup-node@v4
       with:
-        node-version: "20"
+        node-version: "24"
 
     # 6. Configure npm to use Cloudsmith registry via the same OIDC token
     - name: Configure npm registry for Cloudsmith
