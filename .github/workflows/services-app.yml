@@ -11,7 +11,7 @@ permissions:
 
 env: 
   CS_ORG:   globex-innovations 
-  CS_REPO:  python-services
+  CS_REPO:  services
   SERVICE:  gha-service      # Cloudsmith service-account
   
 jobs:
