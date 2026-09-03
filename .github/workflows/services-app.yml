@@ -61,11 +61,11 @@ jobs:
     - uses: actions/setup-dotnet@v4
       with:
         dotnet-version: "8.0.x"
-    # 9. Configure NuGet source for Cloudsmith
+    # 9. Add credentials to the Cloudsmith source (defined in nuget.config)
     - name: Configure NuGet source for Cloudsmith
       run: |
-        dotnet nuget add source "https://nuget.cloudsmith.io/${{ env.CS_ORG }}/${{ env.CS_REPO }}/v3/index.json" \
-          --name cloudsmith \
+        dotnet nuget update source cloudsmith \
+          --source "https://nuget.cloudsmith.io/${{ env.CS_ORG }}/${{ env.CS_REPO }}/v3/index.json" \
           --username token \
           --password "${CLOUDSMITH_API_KEY}" \
           --store-password-in-clear-text
