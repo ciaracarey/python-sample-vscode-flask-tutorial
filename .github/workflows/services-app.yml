@@ -1,28 +1,26 @@
-name: Python CI + npm (uv + Cloudsmith — wheel-only) 
- 
-on: 
+name: Python CI + npm + NuGet (uv + Cloudsmith — wheel-only)
+
+on:
   push:          { branches: ["main"] }
   pull_request:  { branches: ["main"] }
   workflow_dispatch: {}
-  
-permissions: 
-  contents: read 
+
+permissions:
+  contents: read
   id-token: write               # needed for Cloudsmith OIDC
 
-env: 
-  CS_ORG:   globex-innovations 
+env:
+  CS_ORG:   globex-innovations
   CS_REPO:  services
   SERVICE:  gha-service      # Cloudsmith service-account
-  
+
 jobs:
   build:
     runs-on: ubuntu-latest
-
     steps:
-    - uses: actions/checkout@v4 
+    - uses: actions/checkout@v4
     - uses: actions/setup-python@v5
       with: { python-version: "3.12" }
-
     # 1. OIDC login – populates $CLOUDSMITH_API_KEY
     - name: Cloudsmith OIDC login
       uses: cloudsmith-io/cloudsmith-cli-action@v1.0.2
@@ -30,30 +28,25 @@ jobs:
         oidc-namespace:    ${{ env.CS_ORG }}
         oidc-service-slug: ${{ env.SERVICE }}
         oidc-auth-only:    "true"
-
     # 2. Install uv
     - name: Install uv
       run: |
         python -m pip install --upgrade pip
         pip install uv
-
     # 3. Configure uv to use Cloudsmith index
     - name: Configure uv index for Cloudsmith
       run: |
         echo "UV_INDEX_URL=https://token:${CLOUDSMITH_API_KEY}@dl.cloudsmith.io/basic/${{ env.CS_ORG }}/${{ env.CS_REPO }}/python/simple/" >> $GITHUB_ENV
-
     # 4. Install python dependencies via uv (we see the 403s here, if we try to consume a quarantined package)
     - name: Install dependencies with uv
       run: |
         if [ -f requirements.txt ]; then
           uv pip install --system -vv -r requirements.txt
         fi
-
     # 5. Node setup
     - uses: actions/setup-node@v4
       with:
         node-version: "24"
-
     # 6. Configure npm to use Cloudsmith registry via the same OIDC token
     - name: Configure npm registry for Cloudsmith
       run: |
@@ -61,7 +54,24 @@ jobs:
         registry=https://npm.cloudsmith.io/${{ env.CS_ORG }}/${{ env.CS_REPO }}/
         //npm.cloudsmith.io/${{ env.CS_ORG }}/${{ env.CS_REPO }}/:_authToken=${CLOUDSMITH_API_KEY}
         EOF
-
     # 7. Install knip
     - name: Install knip
       run: npm install knip --verbose
+    # 8. .NET setup
+    - uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: "8.0.x"
+    # 9. Configure NuGet source for Cloudsmith
+    - name: Configure NuGet source for Cloudsmith
+      run: |
+        dotnet nuget add source "https://nuget.cloudsmith.io/${{ env.CS_ORG }}/${{ env.CS_REPO }}/v3/index.json" \
+          --name cloudsmith \
+          --username token \
+          --password "${CLOUDSMITH_API_KEY}" \
+          --store-password-in-clear-text
+    # 10. Restore NuGet packages
+    - name: Restore NuGet packages
+      run: |
+        if [ -f *.csproj ] || ls **/*.csproj 1> /dev/null 2>&1; then
+          dotnet restore
+        fi
