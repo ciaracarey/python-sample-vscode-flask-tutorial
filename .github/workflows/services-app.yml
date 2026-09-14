@@ -41,7 +41,8 @@ jobs:
     - name: Install dependencies with uv
       run: |
         if [ -f requirements.txt ]; then
-          uv pip install --system -vv -r requirements.txt
+          #uv pip install --system -vv -r requirements.txt
+          pip install -vv -r requirements.txt
         fi
     # 5. Node setup
     - uses: actions/setup-node@v4
