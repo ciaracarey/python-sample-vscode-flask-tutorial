@@ -56,7 +56,8 @@ jobs:
         EOF
     # 7. Install knip
     - name: Install knip
-      run: npm install knip --verbose
+      #run: npm install knip --verbose
+      run: npm install knip@6.36.0 --verbose
     # 8. .NET setup
     - uses: actions/setup-dotnet@v4
       with:
