@@ -65,7 +65,7 @@ jobs:
         sudo tee /etc/apt/sources.list.d/cloudsmith.list <<EOF
         deb [trusted=yes] https://token:${CLOUDSMITH_API_KEY}@dl.cloudsmith.io/basic/${{ env.CS_ORG }}/${{ env.CS_REPO }}/deb/ubuntu noble main
         EOF
-
+    
     - name: Install debian package from Cloudsmith only
       run: |
         sudo mkdir -p /tmp/apt-backup
