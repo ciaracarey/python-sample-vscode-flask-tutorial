@@ -65,8 +65,12 @@ jobs:
         sudo tee /etc/apt/sources.list.d/cloudsmith.list <<EOF
         deb [trusted=yes] https://token:${CLOUDSMITH_API_KEY}@dl.cloudsmith.io/basic/${{ env.CS_ORG }}/${{ env.CS_REPO }}/deb/ubuntu noble main
         EOF
-        sudo apt-get update
 
-    - name: Install debian package
-      #run: sudo apt-get install -y curl
-      run: sudo apt-get install -y sl
+    - name: Install debian package from Cloudsmith only
+      run: |
+        sudo mkdir -p /tmp/apt-backup
+        sudo mv /etc/apt/sources.list.d/*.list /tmp/apt-backup/ 2>/dev/null || true
+        sudo mv /etc/apt/sources.list.d/cloudsmith.list /etc/apt/sources.list.d/
+        sudo mv /etc/apt/sources.list /tmp/apt-backup/ 2>/dev/null || true
+        sudo apt-get update
+        sudo apt-get install -y sl
