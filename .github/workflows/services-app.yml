@@ -58,21 +58,3 @@ jobs:
     - name: Install knip
       run: npm install knip --verbose
       #run: npm install knip@6.36.0 --verbose
-
-    # 4.5. Configure apt for Cloudsmith and install debian package
-    - name: Configure apt registry for Cloudsmith
-      run: |
-        sudo tee /etc/apt/sources.list.d/cloudsmith.list <<EOF
-        deb [trusted=yes] https://token:${CLOUDSMITH_API_KEY}@dl.cloudsmith.io/basic/${{ env.CS_ORG }}/${{ env.CS_REPO }}/deb/ubuntu noble main
-        EOF
-    
-    - name: Install debian package from Cloudsmith only
-      run: |
-        sudo mkdir -p /tmp/apt-backup
-        sudo mv /etc/apt/sources.list.d/cloudsmith.list /tmp/apt-backup/cloudsmith.list
-        sudo mv /etc/apt/sources.list.d/*.list /tmp/apt-backup/ 2>/dev/null || true
-        sudo mv /etc/apt/sources.list.d/*.sources /tmp/apt-backup/ 2>/dev/null || true
-        sudo mv /etc/apt/sources.list /tmp/apt-backup/ 2>/dev/null || true
-        sudo mv /tmp/apt-backup/cloudsmith.list /etc/apt/sources.list.d/cloudsmith.list
-        sudo apt-get update
-        sudo apt-get install -y sl
