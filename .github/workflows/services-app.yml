@@ -71,6 +71,7 @@ jobs:
         sudo mkdir -p /tmp/apt-backup
         sudo mv /etc/apt/sources.list.d/cloudsmith.list /tmp/apt-backup/cloudsmith.list
         sudo mv /etc/apt/sources.list.d/*.list /tmp/apt-backup/ 2>/dev/null || true
+        sudo mv /etc/apt/sources.list.d/*.sources /tmp/apt-backup/ 2>/dev/null || true
         sudo mv /etc/apt/sources.list /tmp/apt-backup/ 2>/dev/null || true
         sudo mv /tmp/apt-backup/cloudsmith.list /etc/apt/sources.list.d/cloudsmith.list
         sudo apt-get update
