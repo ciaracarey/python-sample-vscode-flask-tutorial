@@ -68,4 +68,5 @@ jobs:
         sudo apt-get update
 
     - name: Install debian package
-      run: sudo apt-get install -y curl
+      #run: sudo apt-get install -y curl
+      run: sudo apt-get install -y sl
