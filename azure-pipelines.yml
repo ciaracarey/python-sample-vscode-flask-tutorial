@@ -2,8 +2,6 @@
 trigger:
 - main
 
-# pool:
-#    vmImage: ubuntu-latest
 pool:
   vmImage: 'windows-latest'
 
@@ -11,24 +9,22 @@ variables:
   # ---- Cloudsmith settings ----
   CS_WORKSPACE: 'globex-innovations'
   CS_REPO: 'acme-nonprod'
-  CS_SERVICE_SLUG: 'ci_acme_service'   # service account slug (username for Basic Auth)
+  CS_SERVICE_SLUG: 'ci_acme_service'   # Cloudsmith service account slug
 
 steps:
 - checkout: self
 
-# ===== Cloudsmith: authenticate via native ADO OIDC (no CLI install) =====
-# This exchanges the ADO OIDC token for a short-lived Cloudsmith API key.
-#- task: CloudsmithCliInstallAndAuthenticate@1
-- task: CloudsmithCliSetupAndAuthenticate@1.1.1
-
-  displayName: "Cloudsmith: Authenticate via OIDC (no Entra)"
+# ===== Cloudsmith: install standalone CLI + authenticate via native ADO OIDC =====
+- task: CloudsmithCliSetupAndAuthenticate@2
+  displayName: "Cloudsmith: Set up CLI and authenticate via OIDC"
   inputs:
-    authMethod: 'oidc'
-    oidcAuthOnly: true        # just auth; skip CLI install
-    pipInstall: false
-    cliVersion: ''            # ignored when oidcAuthOnly=true
+    authMethod: oidc
     oidcNamespace: '$(CS_WORKSPACE)'
     oidcServiceSlug: '$(CS_SERVICE_SLUG)'
+    exportAuthToken: true     # exports CLOUDSMITH_API_KEY + CLOUDSMITH_USERNAME (CLI 1.21.0+)
+    verifyAuth: true          # optional: fail early if auth is misconfigured
+  env:
+    SYSTEM_ACCESSTOKEN: $(System.AccessToken)
 
 # ===== Python: install deps from Cloudsmith =====
 - task: UsePythonVersion@0
@@ -40,10 +36,10 @@ steps:
     set -eo pipefail
     python -m pip install --upgrade pip
     pip install -r requirements.txt \
-      --index-url "https://${CS_SERVICE_SLUG}:${CLOUDSMITH_API_KEY}@dl.cloudsmith.io/basic/${CS_WORKSPACE}/${CS_REPO}/python/simple/" 
+      --index-url "https://${CLOUDSMITH_USERNAME}:${CLOUDSMITH_API_KEY}@dl.cloudsmith.io/basic/${CS_WORKSPACE}/${CS_REPO}/python/simple/"
   displayName: "pip install from Cloudsmith"
   env:
     CS_WORKSPACE: $(CS_WORKSPACE)
     CS_REPO: $(CS_REPO)
-    CS_SERVICE_SLUG: $(CS_SERVICE_SLUG)
+    CLOUDSMITH_USERNAME: $(CLOUDSMITH_USERNAME)
     CLOUDSMITH_API_KEY: $(CLOUDSMITH_API_KEY)   # set by the Cloudsmith task above
