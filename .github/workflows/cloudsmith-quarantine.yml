@@ -1,0 +1,24 @@
+name: Cloudsmith quarantine handler
+
+on:
+  repository_dispatch:
+    types: [cloudsmith-quarantine]
+
+jobs:
+  handle:
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+    steps:
+      - name: Open an issue for the quarantined package
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const p = context.payload.client_payload;
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `Quarantined: ${p.package} ${p.version} (${p.format})`,
+              body: `Cloudsmith quarantined **${p.package} ${p.version}** in \`${p.repository}\`.\n\n${p.url}`,
+              labels: ['cloudsmith', 'quarantine']
+            });
