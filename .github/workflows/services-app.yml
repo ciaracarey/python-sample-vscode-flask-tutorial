@@ -57,15 +57,30 @@ jobs:
     # 7. Install knip
     - name: Install knip
       run: npm install knip --verbose
-    # 9. Verify php2shell is blocked by Cloudsmith (expect 403/quarantine)
-    - name: Verify php2shell is blocked
+     # 10. Verify malicious Composer package is blocked by Cloudsmith (expect quarantine/403)
+    - name: Verify php2shell (Composer) is blocked
+      env:
+        PKG: "vendor/php2shell"   # <-- real vendor/package name
       run: |
+        work="$(mktemp -d)"
+        cd "$work"
+        composer init --no-interaction --name "ci/block-test" >/dev/null
+
+        # Only source = Cloudsmith; kill the Packagist fallback so the test is meaningful
+        composer config repositories.cloudsmith composer \
+          "https://composer.cloudsmith.io/${CS_ORG}/${CS_REPO}/"
+        composer config repositories.packagist.org false
+
+        # HTTP basic auth with the OIDC-issued key
+        composer config --auth http-basic.composer.cloudsmith.io \
+          "${SERVICE}" "${CLOUDSMITH_API_KEY}"
+
         set +e
-        npm install php2shell --ignore-scripts --verbose
+        composer require "$PKG" --no-scripts --no-plugins --no-interaction -vvv
         rc=$?
         set -e
         if [ "$rc" -eq 0 ]; then
-          echo "::error::php2shell installed — Cloudsmith policy did NOT block it"
+          echo "::error::${PKG} installed — Cloudsmith policy did NOT block it"
           exit 1
         fi
         echo "Install blocked as expected (exit $rc)"
