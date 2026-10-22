@@ -64,31 +64,22 @@ jobs:
     # 7. Install knip
     - name: Install knip
       run: npm install knip --verbose
-
-    # 8. Set up PHP (pinned to the php2shell-patched build)
-    - name: Set up PHP
-      uses: shivammathur/setup-php@v2
+      
+    # 8. .NET setup
+    - uses: actions/setup-dotnet@v4
       with:
-        php-version: '8.3.36'
-        tools: composer
-
-    # 9. Pull a PHP package through Cloudsmith (caches it into the services repo)
-    - name: Pull a PHP package via Cloudsmith
-      env:
-        PKG: "bitnami/php-min"
+        dotnet-version: "8.0.x"
+    # 9. Add credentials to the Cloudsmith source (defined in nuget.config)
+    - name: Configure NuGet source for Cloudsmith
       run: |
-        if [ -z "${CLOUDSMITH_API_KEY:-}" ]; then
-          echo "::error::CLOUDSMITH_API_KEY is empty - did the OIDC login step run?"
-          exit 1
+        dotnet nuget update source cloudsmith \
+          --source "https://nuget.cloudsmith.io/${{ env.CS_ORG }}/${{ env.CS_REPO }}/v3/index.json" \
+          --username token \
+          --password "${CLOUDSMITH_API_KEY}" \
+          --store-password-in-clear-text
+    # 10. Restore NuGet packages
+    - name: Restore NuGet packages
+      run: |
+        if [ -f *.csproj ] || ls **/*.csproj 1> /dev/null 2>&1; then
+          dotnet restore
         fi
-
-        work="$(mktemp -d)"; cd "$work"
-        composer init --no-interaction --name "ci/cs-pull" >/dev/null
-
-        composer config repositories.cloudsmith composer \
-          "https://composer.cloudsmith.io/${CS_ORG}/${CS_REPO}/"
-        composer config repositories.packagist.org false
-        composer config --auth http-basic.composer.cloudsmith.io "${SERVICE}" "${CLOUDSMITH_API_KEY}"
-
-        echo "---- effective composer.json ----"; cat composer.json
-        composer require "$PKG" --no-interaction -vvv
