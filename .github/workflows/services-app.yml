@@ -69,8 +69,10 @@ jobs:
       env:
         PKG: "monolog/monolog"   # any package — swap as you like
       run: |
-        : "${CLOUDSMITH_API_KEY:?OIDC login didn't run / key empty}"
-
+        if [ -z "${CLOUDSMITH_API_KEY:-}" ]; then
+          echo "::error::CLOUDSMITH_API_KEY is empty - did the OIDC login step run?"
+          exit 1
+        fi
         work="$(mktemp -d)"; cd "$work"
         composer init --no-interaction --name "ci/cs-pull" >/dev/null
 
