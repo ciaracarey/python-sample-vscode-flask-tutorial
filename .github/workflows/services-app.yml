@@ -66,16 +66,25 @@ jobs:
         tools: composer
 
     # 9. Configure Composer to authenticate to Cloudsmith
-    - name: Configure Composer for Cloudsmith
+    - name: Pull a PHP package via Cloudsmith
       env:
-        CLOUDSMITH_API_KEY: ${{ env.CLOUDSMITH_API_KEY }}
+        PKG: "monolog/monolog"
       run: |
-        composer config --global --auth \
-          http-basic.composer.cloudsmith.io \
-          "$SERVICE" "$CLOUDSMITH_API_KEY"
+        if [ -z "${CLOUDSMITH_API_KEY:-}" ]; then
+          echo "::error::CLOUDSMITH_API_KEY is empty - did the OIDC login step run?"
+          exit 1
+        fi
 
-        composer config --global repositories.cloudsmith \
-          composer "https://composer.cloudsmith.io/basic/${CS_ORG}/${CS_REPO}/"
+        work="$(mktemp -d)"; cd "$work"
+        composer init --no-interaction --name "ci/cs-pull" >/dev/null
+
+        composer config repositories.cloudsmith composer \
+          "https://composer.cloudsmith.io/${CS_ORG}/${CS_REPO}/"
+        composer config repositories.packagist.org false
+        composer config --auth http-basic.composer.cloudsmith.io "${SERVICE}" "${CLOUDSMITH_API_KEY}"
+
+        echo "---- effective composer.json ----"; cat composer.json
+        composer require "$PKG" --no-interaction -vvv
 
     # 10. Consume a popular PHP package through Cloudsmith
     - name: Install Monolog via Cloudsmith
