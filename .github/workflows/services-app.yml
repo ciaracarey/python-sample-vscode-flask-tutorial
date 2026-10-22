@@ -57,32 +57,33 @@ jobs:
     # 7. Install knip
     - name: Install knip
       run: npm install knip --verbose
-# 8. PHP + Composer setup
-    - name: Setup PHP
+
+    # 8. Set up PHP
+    - name: Set up PHP
       uses: shivammathur/setup-php@v2
       with:
-        php-version: "8.3.36"   # patched for php2shell, while we're here
+        php-version: '8.3'
         tools: composer
 
-# 9. Pull a Composer package through Cloudsmith (caches it into the services repo)
-    - name: Pull a PHP package via Cloudsmith
+    # 9. Configure Composer to authenticate to Cloudsmith
+    - name: Configure Composer for Cloudsmith
       env:
-        PKG: "monolog/monolog"   # any package — swap as you like
+        CLOUDSMITH_API_KEY: ${{ env.CLOUDSMITH_API_KEY }}
       run: |
-        if [ -z "${CLOUDSMITH_API_KEY:-}" ]; then
-          echo "::error::CLOUDSMITH_API_KEY is empty - did the OIDC login step run?"
-          exit 1
-        fi
-        work="$(mktemp -d)"; cd "$work"
-        composer init --no-interaction --name "ci/cs-pull" >/dev/null
+        composer config --global repositories.cloudsmith \
+          composer https://composer.cloudsmith.io/basic/${{ env.CS_ORG }}/${{ env.CS_REPO }}/
 
-        # Resolve through Cloudsmith only, so the package is proxied + cached into `services`
-        composer config repositories.cloudsmith composer \
-          "https://dl.cloudsmith.io/basic/${CS_ORG}/${CS_REPO}/composer/"
-        composer config repositories.packagist.org false
+        composer config --global --auth http-basic.composer.cloudsmith.io \
+          token "$CLOUDSMITH_API_KEY"
 
-        # HTTP basic auth with the OIDC-issued key
-        composer config --auth http-basic.dl.cloudsmith.io "${SERVICE}" "${CLOUDSMITH_API_KEY}"
+    # 10. Consume a popular PHP package through Cloudsmith
+    - name: Install Monolog via Cloudsmith
+      run: |
+        mkdir -p /tmp/php-consumer
+        cd /tmp/php-consumer
 
-        composer require "$PKG" --no-interaction -vvv
-     
+        composer init --no-interaction \
+          --name=globex-innovations/php-consumer \
+          --require=monolog/monolog:^3.0
+
+        composer install --no-interaction --prefer-dist -vvv
