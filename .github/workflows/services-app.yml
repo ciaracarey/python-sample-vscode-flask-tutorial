@@ -75,7 +75,7 @@ jobs:
     # 9. Pull a PHP package through Cloudsmith (caches it into the services repo)
     - name: Pull a PHP package via Cloudsmith
       env:
-        PKG: "monolog/monolog"
+        PKG: "bitnami/php-min"
       run: |
         if [ -z "${CLOUDSMITH_API_KEY:-}" ]; then
           echo "::error::CLOUDSMITH_API_KEY is empty - did the OIDC login step run?"
