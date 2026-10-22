@@ -70,11 +70,12 @@ jobs:
       env:
         CLOUDSMITH_API_KEY: ${{ env.CLOUDSMITH_API_KEY }}
       run: |
-        composer config --global repositories.cloudsmith \
-          composer https://composer.cloudsmith.io/basic/${{ env.CS_ORG }}/${{ env.CS_REPO }}/
+        composer config --global --auth \
+          http-basic.composer.cloudsmith.io \
+          "$SERVICE" "$CLOUDSMITH_API_KEY"
 
-        composer config --global --auth http-basic.composer.cloudsmith.io \
-          token "$CLOUDSMITH_API_KEY"
+        composer config --global repositories.cloudsmith \
+          composer "https://composer.cloudsmith.io/basic/${CS_ORG}/${CS_REPO}/"
 
     # 10. Consume a popular PHP package through Cloudsmith
     - name: Install Monolog via Cloudsmith
