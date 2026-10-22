@@ -57,4 +57,30 @@ jobs:
     # 7. Install knip
     - name: Install knip
       run: npm install knip --verbose
+# 8. PHP + Composer setup
+    - name: Setup PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: "8.3.36"   # patched for php2shell, while we're here
+        tools: composer
+
+# 9. Pull a Composer package through Cloudsmith (caches it into the services repo)
+    - name: Pull a PHP package via Cloudsmith
+      env:
+        PKG: "monolog/monolog"   # any package — swap as you like
+      run: |
+        : "${CLOUDSMITH_API_KEY:?OIDC login didn't run / key empty}"
+
+        work="$(mktemp -d)"; cd "$work"
+        composer init --no-interaction --name "ci/cs-pull" >/dev/null
+
+        # Resolve through Cloudsmith only, so the package is proxied + cached into `services`
+        composer config repositories.cloudsmith composer \
+          "https://dl.cloudsmith.io/basic/${CS_ORG}/${CS_REPO}/composer/"
+        composer config repositories.packagist.org false
+
+        # HTTP basic auth with the OIDC-issued key
+        composer config --auth http-basic.dl.cloudsmith.io "${SERVICE}" "${CLOUDSMITH_API_KEY}"
+
+        composer require "$PKG" --no-interaction -vvv
      
