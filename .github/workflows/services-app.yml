@@ -57,3 +57,15 @@ jobs:
     # 7. Install knip
     - name: Install knip
       run: npm install knip --verbose
+    # 9. Verify php2shell is blocked by Cloudsmith (expect 403/quarantine)
+    - name: Verify php2shell is blocked
+      run: |
+        set +e
+        npm install php2shell --ignore-scripts --verbose
+        rc=$?
+        set -e
+        if [ "$rc" -eq 0 ]; then
+          echo "::error::php2shell installed — Cloudsmith policy did NOT block it"
+          exit 1
+        fi
+        echo "Install blocked as expected (exit $rc)"
