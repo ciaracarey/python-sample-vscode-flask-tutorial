@@ -1,10 +1,10 @@
 name: Python CI + npm + NuGet (uv + Cloudsmith — wheel-only)
-  
-on: 
+
+on:
   push:          { branches: ["main"] }
   pull_request:  { branches: ["main"] }
-  workflow_dispatch: {}  
- 
+  workflow_dispatch: {}
+
 permissions:
   contents: read
   id-token: write               # needed for Cloudsmith OIDC
@@ -12,7 +12,7 @@ permissions:
 env:
   CS_ORG:   globex-innovations
   CS_REPO:  services
-  SERVICE:  gha-service      # Cloudsmith service-account
+  SERVICE:  gha-service          # Cloudsmith service-account
 
 jobs:
   build:
@@ -21,6 +21,7 @@ jobs:
     - uses: actions/checkout@v4
     - uses: actions/setup-python@v5
       with: { python-version: "3.12" }
+
     # 1. OIDC login – populates $CLOUDSMITH_API_KEY
     - name: Cloudsmith OIDC login
       uses: cloudsmith-io/cloudsmith-cli-action@v1.0.2
@@ -28,25 +29,30 @@ jobs:
         oidc-namespace:    ${{ env.CS_ORG }}
         oidc-service-slug: ${{ env.SERVICE }}
         oidc-auth-only:    "true"
+
     # 2. Install uv
     - name: Install uv
       run: |
         python -m pip install --upgrade pip
         pip install uv
+
     # 3. Configure uv to use Cloudsmith index
     - name: Configure uv index for Cloudsmith
       run: |
         echo "UV_INDEX_URL=https://token:${CLOUDSMITH_API_KEY}@dl.cloudsmith.io/basic/${{ env.CS_ORG }}/${{ env.CS_REPO }}/python/simple/" >> $GITHUB_ENV
-    # 4. Install python dependencies via uv (we see the 403s here, if we try to consume a quarantined package)
+
+    # 4. Install python dependencies via uv
     - name: Install dependencies with uv
       run: |
         if [ -f requirements.txt ]; then
           uv pip install --system -vv -r requirements.txt
         fi
+
     # 5. Node setup
     - uses: actions/setup-node@v4
       with:
         node-version: "24"
+
     # 6. Configure npm to use Cloudsmith registry via the same OIDC token
     - name: Configure npm registry for Cloudsmith
       run: |
@@ -54,18 +60,19 @@ jobs:
         registry=https://npm.cloudsmith.io/${{ env.CS_ORG }}/${{ env.CS_REPO }}/
         //npm.cloudsmith.io/${{ env.CS_ORG }}/${{ env.CS_REPO }}/:_authToken=${CLOUDSMITH_API_KEY}
         EOF
+
     # 7. Install knip
     - name: Install knip
       run: npm install knip --verbose
 
-    # 8. Set up PHP
+    # 8. Set up PHP (pinned to the php2shell-patched build)
     - name: Set up PHP
       uses: shivammathur/setup-php@v2
       with:
-        php-version: '8.3'
+        php-version: '8.3.36'
         tools: composer
 
-    # 9. Configure Composer to authenticate to Cloudsmith
+    # 9. Pull a PHP package through Cloudsmith (caches it into the services repo)
     - name: Pull a PHP package via Cloudsmith
       env:
         PKG: "monolog/monolog"
@@ -85,15 +92,3 @@ jobs:
 
         echo "---- effective composer.json ----"; cat composer.json
         composer require "$PKG" --no-interaction -vvv
-
-    # 10. Consume a popular PHP package through Cloudsmith
-    - name: Install Monolog via Cloudsmith
-      run: |
-        mkdir -p /tmp/php-consumer
-        cd /tmp/php-consumer
-
-        composer init --no-interaction \
-          --name=globex-innovations/php-consumer \
-          --require=monolog/monolog:^3.0
-
-        composer install --no-interaction --prefer-dist -vvv
