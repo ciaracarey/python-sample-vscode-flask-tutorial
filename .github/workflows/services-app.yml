@@ -57,3 +57,6 @@ jobs:
     # 7. Install knip
     - name: Install knip
       run: npm install knip --verbose
+    # 8. Install osv marked package
+    - name: Install pai which is marked as os
+      run: npm install @tekmidian/pai --verbose
