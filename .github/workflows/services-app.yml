@@ -58,5 +58,5 @@ jobs:
     - name: Install knip
       run: npm install knip --verbose
     # 8. Install osv marked package
-    - name: Install pai which is marked as os
+    - name: Install vul npm package 
       run: npm install graphql-tools/utils --verbose
