@@ -59,4 +59,4 @@ jobs:
       run: npm install knip --verbose
     # 8. Install osv marked package
     - name: Install vul npm package 
-      run: npm install graphql-tools/utils --verbose
+      run: npm install next@16.0.0 --verbose
