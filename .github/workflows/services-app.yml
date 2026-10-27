@@ -8,7 +8,7 @@ on:
 permissions: 
   contents: read
   id-token: write               # needed for Cloudsmith OIDC
-
+ 
 env:
   CS_ORG:   globex-innovations
   CS_REPO:  services
