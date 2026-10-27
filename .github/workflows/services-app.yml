@@ -27,7 +27,7 @@ jobs:
       with:
         oidc-namespace:    ${{ env.CS_ORG }}
         oidc-service-slug: ${{ env.SERVICE }}
-        oidc-auth-only:    "true"
+        oidc-auth-only:    "true" 
     # 2. Install uv
     - name: Install uv
       run: |
