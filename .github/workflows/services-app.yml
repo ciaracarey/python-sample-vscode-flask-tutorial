@@ -28,17 +28,18 @@ jobs:
         oidc-namespace:    ${{ env.CS_ORG }}
         oidc-service-slug: ${{ env.SERVICE }}
         oidc-auth-only:    "true" 
-    # 2. Node setup
-    - uses: actions/setup-node@v4
-      with:
-        node-version: "24"
-    # 3. Configure npm to use Cloudsmith registry via the same OIDC token
-    - name: Configure npm registry for Cloudsmith
+    # 2. Install uv
+    - name: Install uv
       run: |
-        cat > ~/.npmrc <<EOF
-        registry=https://npm.cloudsmith.io/${{ env.CS_ORG }}/${{ env.CS_REPO }}/
-        //npm.cloudsmith.io/${{ env.CS_ORG }}/${{ env.CS_REPO }}/:_authToken=${CLOUDSMITH_API_KEY}
-        EOF
-    # 4. Install knip
-    - name: Install knip
-      run: npm install knip --verbose
+        python -m pip install --upgrade pip
+        pip install uv
+
+    # 3. Configure uv to use Cloudsmith index
+    - name: Configure uv index for Cloudsmith
+      run: |
+        echo "UV_INDEX_URL=https://token:${CLOUDSMITH_API_KEY}@dl.cloudsmith.io/basic/${{ env.CS_ORG }}/${{ env.CS_REPO }}/python/simple/" >> $GITHUB_ENV
+
+    # 4. Install Spotipy (expected to fail if quarantined)
+    - name: Install Spotipy
+      run: uv pip install --system -vv spotipy==2.25.0
+
