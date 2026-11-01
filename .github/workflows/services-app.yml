@@ -41,5 +41,5 @@ jobs:
 
     # 4. Install Spotipy (expected to fail if quarantined)
     - name: Install Spotipy
-      run: uv pip install --system -vv spotipy==2.25.0
+      run: uv pip install --system -vv boto3
 
