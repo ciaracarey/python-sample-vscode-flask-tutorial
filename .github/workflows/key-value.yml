@@ -1,8 +1,12 @@
 name: Release evidence demo (uv + Cloudsmith)
 
 on:
-  push:          { branches: ["main"] }
-  workflow_dispatch: {}
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to run against'
+        required: true
+        default: 'staging'
 
 permissions:
   contents: read
