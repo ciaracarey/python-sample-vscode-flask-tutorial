@@ -43,7 +43,7 @@ jobs:
 
     # 4. Install Spotipy (expected to fail if quarantined) spotipy==2.25.0 boto3 
     - name: Install python package
-      run: uv pip install --system -vv ansible-core
+      run: uv pip install --system -vv boto3
 
     # 5. Node setup
     - uses: actions/setup-node@v4
