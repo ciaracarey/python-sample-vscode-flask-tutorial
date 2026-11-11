@@ -1,26 +1,26 @@
-name: Cloudsmith custom 403 test (npm vs pnpm)
+name: Python CI + npm + Python (uv + Cloudsmith — wheel-only)
 
-on:
+on: 
   push:          { branches: ["main"] }
-  pull_request:  { branches: ["main"] }
+  pull_request:  { branches: ["main"] } 
   workflow_dispatch: {}
 
 permissions:
-  contents: read
+  contents: read 
   id-token: write               # needed for Cloudsmith OIDC
 
 env:
   CS_ORG:   globex-innovations
   CS_REPO:  services
   SERVICE:  gha-service          # Cloudsmith service-account
-  # minimist 1.2.5: CVE-2021-44906, prototype pollution, CVSS 9.8, fixed in 1.2.6
-  TEST_PKG: minimist@1.2.5
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
+    - uses: actions/setup-python@v5
+      with: { python-version: "3.12" }
 
     # 1. OIDC login – populates $CLOUDSMITH_API_KEY
     - name: Cloudsmith OIDC login
@@ -30,43 +30,34 @@ jobs:
         oidc-service-slug: ${{ env.SERVICE }}
         oidc-auth-only:    "true"
 
-    # 2. Node + pnpm setup (no package-manager cache, so every fetch hits Cloudsmith)
+    # 2. Install uv
+    - name: Install uv
+      run: |
+        python -m pip install --upgrade pip
+        pip install uv
+
+    # 3. Configure uv to use Cloudsmith index
+    - name: Configure uv index for Cloudsmith
+      run: |
+        echo "UV_INDEX_URL=https://token:${CLOUDSMITH_API_KEY}@dl.cloudsmith.io/basic/${{ env.CS_ORG }}/${{ env.CS_REPO }}/python/simple/" >> $GITHUB_ENV
+
+    # 4. Install Spotipy (expected to fail if quarantined) spotipy==2.25.0 boto3 
+   # - name: Install python package
+   #   run: uv pip install --system -vv ansible-core==2.17.7
+
+    # 5. Node setup
     - uses: actions/setup-node@v4
       with:
         node-version: "24"
 
-    - uses: pnpm/action-setup@v4
-      with:
-        version: 10
-
-    # 3. Point npm and pnpm at Cloudsmith (both read ~/.npmrc)
-    - name: Configure registry for Cloudsmith
+    # 6. Configure npm to use Cloudsmith registry via the same OIDC token
+    - name: Configure npm registry for Cloudsmith
       run: |
         cat > ~/.npmrc <<EOF
         registry=https://npm.cloudsmith.io/${{ env.CS_ORG }}/${{ env.CS_REPO }}/
         //npm.cloudsmith.io/${{ env.CS_ORG }}/${{ env.CS_REPO }}/:_authToken=${CLOUDSMITH_API_KEY}
         EOF
 
-    # 4. Baseline: npm, which should show the custom message
-    - name: npm install (baseline)
-      continue-on-error: true
-      run: |
-        mkdir -p /tmp/npm-test && cd /tmp/npm-test
-        npm init -y > /dev/null
-        npm install "$TEST_PKG" --verbose
-
-    # 5. pnpm with default output: what a developer would actually see
-    - name: pnpm add (default output)
-      continue-on-error: true
-      run: |
-        mkdir -p /tmp/pnpm-test && cd /tmp/pnpm-test
-        pnpm init > /dev/null
-        pnpm add "$TEST_PKG"
-
-    # 6. pnpm with debug logging: shows whether the response body reaches the client at all
-    - name: pnpm add (debug output)
-      continue-on-error: true
-      run: |
-        mkdir -p /tmp/pnpm-debug && cd /tmp/pnpm-debug
-        pnpm init > /dev/null
-        pnpm add "$TEST_PKG" --loglevel debug --reporter=append-only
+    # 7. Install knip
+    - name: Install knip
+      run: npm install minimist@1.2.5 --verbose
