@@ -42,8 +42,8 @@ jobs:
         echo "UV_INDEX_URL=https://token:${CLOUDSMITH_API_KEY}@dl.cloudsmith.io/basic/${{ env.CS_ORG }}/${{ env.CS_REPO }}/python/simple/" >> $GITHUB_ENV
 
     # 4. Install Spotipy (expected to fail if quarantined) spotipy==2.25.0 boto3 
-   # - name: Install python package
-   #   run: uv pip install --system -vv ansible-core==2.17.7
+    - name: Install python package
+      run: uv pip install --system -vv spotipy==2.25.0
 
     # 5. Node setup
     - uses: actions/setup-node@v4
@@ -60,4 +60,4 @@ jobs:
 
     # 7. Install knip
     - name: Install knip
-      run: npm install minimist@1.2.5 --verbose
+      run: npm install knip --verbose
