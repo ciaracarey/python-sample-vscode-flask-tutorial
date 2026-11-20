@@ -47,7 +47,7 @@ jobs:
         echo "PIP_INDEX_URL=https://token:${CLOUDSMITH_API_KEY}@dl.cloudsmith.io/basic/${{ env.CS_ORG }}/${{ env.CS_REPO }}/python/simple/" >> $GITHUB_ENV
         
     - name: Install Python package
-      run: uv pip install --system -vv skypilot==0.13.0
+      run: uv pip install --system -vv boto3
 
     # 5. Node setup
     - uses: actions/setup-node@v4
